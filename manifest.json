@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "GDocs Tweaks",
+  "version": "0.1.0",
+  "description": "Google ドキュメントにちょっとした便利機能を追加します。",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/document/*"],
+      "js": ["src/lib/markdown-link.js", "src/lib/features.js", "src/content/main.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
