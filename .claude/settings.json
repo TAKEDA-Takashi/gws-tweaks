@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "c=$(/opt/homebrew/bin/jq -r '.tool_input.command // \"\"'); if echo \"$c\" | grep -qE 'vitest|npm (run )?test' && ! echo \"$c\" | grep -qE -- '--run|vitest run'; then echo 'vitestはwatchモードで停止します。npm test -- --run を使ってください' >&2; exit 2; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(/opt/homebrew/bin/jq -r '.tool_input.file_path // \"\"'); case \"$f\" in */manifest.json) err=$(/opt/homebrew/bin/jq empty \"$f\" 2>&1) || { echo \"manifest.jsonのJSON構文エラー: $err\" >&2; exit 2; };; esac"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); echo \"$input\" | /opt/homebrew/bin/jq -e '.stop_hook_active == true' >/dev/null && exit 0; cd \"$CLAUDE_PROJECT_DIR\" || exit 0; [ -z \"$(git status --porcelain src test)\" ] && exit 0; out=$(npm test -- --run 2>&1) || { echo 'テスト失敗:' >&2; echo \"$out\" | tail -20 >&2; exit 2; }",
+            "timeout": 120,
+            "statusMessage": "npm test -- --run を実行中..."
+          }
+        ]
+      }
+    ]
+  }
+}
