@@ -27,12 +27,25 @@ describe('extractDocId', () => {
     ).toBe('1AbC_dEf-123');
   });
 
-  it('マルチアカウントの /u/N/ 付きURLからIDを抽出する', () => {
-    expect(extractDocId('https://docs.google.com/document/u/1/d/1AbC/edit')).toBe('1AbC');
+  it('スプレッドシートURLからIDを抽出する', () => {
+    expect(
+      extractDocId('https://docs.google.com/spreadsheets/d/1AbC/edit?gid=0#gid=0')
+    ).toBe('1AbC');
   });
 
-  it('ドキュメント以外のURLはnullを返す', () => {
-    expect(extractDocId('https://docs.google.com/spreadsheets/d/1AbC/edit')).toBeNull();
+  it('スライドURLからIDを抽出する', () => {
+    expect(
+      extractDocId('https://docs.google.com/presentation/d/1AbC/edit#slide=id.p')
+    ).toBe('1AbC');
+  });
+
+  it('マルチアカウントの /u/N/ 付きURLからIDを抽出する', () => {
+    expect(extractDocId('https://docs.google.com/document/u/1/d/1AbC/edit')).toBe('1AbC');
+    expect(extractDocId('https://docs.google.com/spreadsheets/u/2/d/1AbC/edit')).toBe('1AbC');
+  });
+
+  it('対象外のURLはnullを返す', () => {
+    expect(extractDocId('https://docs.google.com/forms/d/1AbC/edit')).toBeNull();
     expect(extractDocId('https://docs.google.com/document/')).toBeNull();
     expect(extractDocId('https://example.com/document/d/1AbC/edit')).toBeNull();
   });

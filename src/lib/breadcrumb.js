@@ -3,7 +3,8 @@
 (function (root) {
   'use strict';
 
-  const DOC_URL_RE = /^https:\/\/docs\.google\.com\/document(?:\/u\/\d+)?\/d\/([\w-]+)/;
+  const DOC_URL_RE =
+    /^https:\/\/docs\.google\.com\/(?:document|spreadsheets|presentation)(?:\/u\/\d+)?\/d\/([\w-]+)/;
 
   function extractDocId(url) {
     const m = url.match(DOC_URL_RE);
