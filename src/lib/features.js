@@ -10,6 +10,13 @@
         '[タイトル](URL) 形式のテキストを貼り付けたとき、タイトルの長さに関係なくリンクとして挿入します。',
       defaultEnabled: true,
     },
+    {
+      id: 'driveBreadcrumb',
+      name: 'フォルダーパスの表示',
+      description:
+        'ドキュメント上部に、ファイルが置かれているドライブのフォルダー階層をパンくずリストとして表示します。クリックでフォルダーを開けます（Googleアカウントでの認証が必要です）。',
+      defaultEnabled: true,
+    },
   ];
 
   // 保存済み設定にない機能はdefaultEnabledで補完して返す

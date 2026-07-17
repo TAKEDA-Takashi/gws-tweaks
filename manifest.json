@@ -3,11 +3,25 @@
   "name": "GWS Tweaks",
   "version": "0.1.0",
   "description": "Google Workspace にちょっとした便利機能を追加します。",
-  "permissions": ["storage"],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7Ep25UJJhmXnFiHtqDV0+D0TvexDSu6NuWmSz7K893OiTr/AvWGw9g+63/B4QlgZ64/hCmv82pyWqVWzULOfx0TWjZRfu8KxxtTajXCCkyTo2XiyoYR1A1+siSrbt4cndChucH7hJIX2TbD5ixdv3R0pdfZy3DmYUd2x16tBVvpTPk41Q9GEyFii4kpJ2a/BP99g3IkrOTNY1LDiQTDa+rVwi162daYxpje55lSi3ZunN3VfXe8IIGh+QbrQatBwgg42a1YZ/ahnQE+zP9jyjpUqK63ZlCzVbzBpQzvWqtF2z4wLstMrfuVEJTDw+wKDQxGAXrg3L15turJLHJH3xQIDAQAB",
+  "permissions": ["storage", "identity"],
+  "host_permissions": ["https://www.googleapis.com/*"],
+  "oauth2": {
+    "client_id": "102198490504-dlk5n6b755njoef77cq6796co0pbmvet.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://docs.google.com/document/*"],
-      "js": ["src/lib/markdown-link.js", "src/lib/features.js", "src/content/main.js"],
+      "js": [
+        "src/lib/markdown-link.js",
+        "src/lib/breadcrumb.js",
+        "src/lib/features.js",
+        "src/content/main.js"
+      ],
       "run_at": "document_idle"
     }
   ],
