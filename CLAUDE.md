@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 概要
 
-Google Workspace（ドキュメント、Gmail、カレンダーなど）に便利機能を追加するChrome拡張（Manifest V3）。現在の機能はGoogle ドキュメント向けのみで、他アプリ向けの機能を最初に追加する際に `src/content/` をアプリ別ディレクトリに再編する方針。ビルドステップはなく、リポジトリのルートをそのまま「パッケージ化されていない拡張機能」としてChromeに読み込む。lint・typecheckは未設定で、品質チェックはテストのみ。
+Google Workspace（ドキュメント、Gmail、カレンダーなど）に便利機能を追加するChrome拡張（Manifest V3）。content scriptはドキュメント・スプレッドシート・スライドで共通に動作し（3アプリのヘッダーDOMは同一構造）、Docs固有機能は `IS_DOCS` でガードする。アプリ固有機能が増えて見通しが悪くなったら `src/content/` をアプリ別に再編する方針。ビルドステップはなく、リポジトリのルートをそのまま「パッケージ化されていない拡張機能」としてChromeに読み込む。lint・typecheckは未設定で、品質チェックはテストのみ。
 
 ## コマンド
 
@@ -38,7 +38,7 @@ npm test -- --run test/markdown-link.test.js  # 単一ファイルのテスト
 
 ### フォルダーパス（パンくず）表示の仕組み
 
-content scriptがservice worker経由でDrive APIから親フォルダー階層を取得し、`#docs-menubars` の直後に全幅の行（高さ24px）として挿入する。Docsのヘッダー・本文領域の高さは固定計算のため、**行の挿入・削除のたびに `window` へ `resize` イベントをdispatchして再レイアウトさせる必要がある**（これを怠るとツールバー以下に重なる）。タイトル横やメニューバー右側への配置は、右側アイコン群との重なりやウィンドウ幅依存の問題があり不採用になった経緯がある。
+content scriptがservice worker経由でDrive APIから親フォルダー階層を取得し、`#docs-menubars` の直後に全幅の行（高さ24px）として挿入する。ヘッダー・本文領域の高さは固定計算のため、**行の挿入・削除のたびに `window` へ `resize` イベントをdispatchして再レイアウトさせる必要がある**（これを怠るとツールバー以下に重なる）。タイトル横やメニューバー右側への配置は、右側アイコン群との重なりやウィンドウ幅依存の問題があり不採用になった経緯がある。`#docs-menubars` 等のヘッダーDOMはドキュメント・スプレッドシート・スライドで同一（実機確認済み）。
 
 ### Markdownリンク貼り付けの仕組み（既存機能の例）
 
