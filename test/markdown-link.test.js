@@ -5,7 +5,7 @@ let buildAnchorHtml;
 
 beforeAll(async () => {
   await import('../src/lib/markdown-link.js');
-  ({ parseMarkdownLink, buildAnchorHtml } = globalThis.GDocsTweaks);
+  ({ parseMarkdownLink, buildAnchorHtml } = globalThis.GWSTweaks);
 });
 
 describe('parseMarkdownLink', () => {

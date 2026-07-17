@@ -27,7 +27,7 @@
     await chrome.storage.sync.set({ features: settings });
   }
 
-  root.GDocsTweaks = Object.assign(root.GDocsTweaks || {}, {
+  root.GWSTweaks = Object.assign(root.GWSTweaks || {}, {
     FEATURES,
     loadFeatureSettings,
     saveFeatureSettings,

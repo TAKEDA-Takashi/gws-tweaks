@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "GDocs Tweaks",
+  "name": "GWS Tweaks",
   "version": "0.1.0",
-  "description": "Google ドキュメントにちょっとした便利機能を追加します。",
+  "description": "Google Workspace にちょっとした便利機能を追加します。",
   "permissions": ["storage"],
   "content_scripts": [
     {

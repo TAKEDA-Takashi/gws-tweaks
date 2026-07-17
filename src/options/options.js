@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const { FEATURES, loadFeatureSettings, saveFeatureSettings } = globalThis.GDocsTweaks;
+  const { FEATURES, loadFeatureSettings, saveFeatureSettings } = globalThis.GWSTweaks;
 
   async function render() {
     const settings = await loadFeatureSettings();

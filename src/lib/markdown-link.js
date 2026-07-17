@@ -26,7 +26,7 @@
     return '<a href="' + escapeHtml(link.url) + '">' + escapeHtml(link.title) + '</a>';
   }
 
-  root.GDocsTweaks = Object.assign(root.GDocsTweaks || {}, {
+  root.GWSTweaks = Object.assign(root.GWSTweaks || {}, {
     parseMarkdownLink,
     buildAnchorHtml,
   });

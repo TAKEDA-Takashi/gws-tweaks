@@ -1,8 +1,8 @@
 {
-  "name": "gdocs-tweaks",
+  "name": "gws-tweaks",
   "version": "0.1.0",
   "private": true,
-  "description": "Google ドキュメントにちょっとした便利機能を追加するChrome拡張",
+  "description": "Google Workspace にちょっとした便利機能を追加するChrome拡張",
   "scripts": {
     "test": "vitest"
   },

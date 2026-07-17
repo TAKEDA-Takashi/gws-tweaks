@@ -1,12 +1,12 @@
-# GDocs Tweaks
+# GWS Tweaks
 
-Google ドキュメントにちょっとした便利機能を追加するChrome拡張（Manifest V3）。
+Google Workspace（ドキュメント、Gmail、カレンダーなど）にちょっとした便利機能を追加するChrome拡張（Manifest V3）。現在はGoogle ドキュメント向けの機能のみあります。
 
 ## 機能
 
 各機能は拡張の設定画面から個別にON/OFFできます。
 
-### Markdownリンクの貼り付け変換
+### Markdownリンクの貼り付け変換（Google ドキュメント）
 
 `[タイトル](URL)` 形式のテキストを貼り付けたとき、リンクとして挿入します。
 
@@ -26,8 +26,8 @@ Google Docs標準のMarkdown自動検出はタイトルが98文字以上だと�
 
 ## 設定
 
-`chrome://extensions` → GDocs Tweaks → 「拡張機能のオプション」から各機能をON/OFFできます。
-設定は `chrome.storage.sync` に保存され、開いているドキュメントに即時反映されます。
+`chrome://extensions` → GWS Tweaks → 「拡張機能のオプション」から各機能をON/OFFできます。
+設定は `chrome.storage.sync` に保存され、開いているページに即時反映されます。
 
 ## 開発
 

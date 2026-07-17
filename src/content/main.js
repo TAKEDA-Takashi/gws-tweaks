@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  const { parseMarkdownLink, buildAnchorHtml, loadFeatureSettings } = globalThis.GDocsTweaks;
+  const { parseMarkdownLink, buildAnchorHtml, loadFeatureSettings } = globalThis.GWSTweaks;
 
   const enabled = {};
 
@@ -21,7 +21,7 @@
     if (!enabled.markdownLinkPaste) {
       return;
     }
-    if (event.__gdocsTweaksSynthetic) {
+    if (event.__gwsTweaksSynthetic) {
       return;
     }
     const link = parseMarkdownLink(event.clipboardData.getData('text/plain'));
@@ -41,7 +41,7 @@
       bubbles: true,
       cancelable: true,
     });
-    synthetic.__gdocsTweaksSynthetic = true;
+    synthetic.__gwsTweaksSynthetic = true;
     event.target.dispatchEvent(synthetic);
   }
 
