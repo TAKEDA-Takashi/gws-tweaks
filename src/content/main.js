@@ -1,7 +1,9 @@
-// Google ドキュメントのトップフレームで動作するcontent script。
-// 入力イベントを受け取る docs-texteventtarget-iframe を見つけて各機能を配線する。
+// Google ドキュメント・スプレッドシート・スライドのトップフレームで動作するcontent script。
 (function () {
   'use strict';
+
+  // Markdownリンク貼り付けなどDocs固有の機能はドキュメントでのみ有効にする
+  const IS_DOCS = location.pathname.startsWith('/document/');
 
   const {
     parseMarkdownLink,
@@ -61,6 +63,10 @@
   const boundDocs = new WeakSet();
 
   function bindEventTargetIframe() {
+    // 同名のiframeはスライドにも存在するため、Docs以外では配線しない
+    if (!IS_DOCS) {
+      return true;
+    }
     const iframe = document.querySelector('iframe.docs-texteventtarget-iframe');
     if (!iframe || !iframe.contentDocument) {
       return false;
