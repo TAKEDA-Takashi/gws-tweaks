@@ -18,14 +18,14 @@
 
   loadFeatureSettings().then((settings) => {
     Object.assign(enabled, settings);
-    syncBreadcrumb();
+    syncBar();
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'sync' && changes.features) {
       loadFeatureSettings().then((settings) => {
         Object.assign(enabled, settings);
-        syncBreadcrumb();
+        syncBar();
       });
     }
   });
@@ -80,63 +80,112 @@
     return true;
   }
 
-  // --- ドライブのフォルダーパス（パンくず）表示 ---
+  // --- メニューバー下の共有バー（パンくず表示＋アクションボタン） ---
 
+  const BAR_ID = 'gws-tweaks-bar';
   const BREADCRUMB_ID = 'gws-tweaks-breadcrumb';
+  const DOC_SETUP_BUTTON_ID = 'gws-tweaks-doc-setup';
 
   // ヘッダーの行構成を変えたときにDocsに本文領域の高さを再計算させる
   function relayoutDocs() {
     window.dispatchEvent(new Event('resize'));
   }
 
-  function removeBreadcrumb() {
+  // メニューバー直下に全幅の行として挿入する（横に置くとウィンドウ幅に依存するため）
+  function ensureBar() {
+    let bar = document.getElementById(BAR_ID);
+    if (bar) {
+      return bar;
+    }
+    const menubars = document.getElementById('docs-menubars');
+    const menubar = document.getElementById('docs-menubar');
+    if (!menubars || !menubar) {
+      return null;
+    }
+    bar = document.createElement('div');
+    bar.id = BAR_ID;
+    const menubarLeft = Math.round(menubar.getBoundingClientRect().left);
+    Object.assign(bar.style, {
+      display: 'flex',
+      alignItems: 'center',
+      height: '24px',
+      gap: '16px',
+      paddingLeft: menubarLeft + 'px',
+      paddingRight: '16px',
+      fontSize: '12px',
+      color: '#5f6368',
+      whiteSpace: 'nowrap',
+    });
+    menubars.insertAdjacentElement('afterend', bar);
+    relayoutDocs();
+    return bar;
+  }
+
+  function removeBar() {
     closeBreadcrumbPopup();
-    const el = document.getElementById(BREADCRUMB_ID);
-    if (el) {
-      el.remove();
+    const bar = document.getElementById(BAR_ID);
+    if (bar) {
+      bar.remove();
       relayoutDocs();
     }
   }
 
-  function syncBreadcrumb() {
-    if (enabled.driveBreadcrumb) {
-      mountBreadcrumb();
-    } else {
-      removeBreadcrumb();
+  // バーに表示するものがなくなったら行ごと畳んで本文領域を返す
+  function pruneBar() {
+    const bar = document.getElementById(BAR_ID);
+    if (bar && !document.getElementById(BREADCRUMB_ID)) {
+      removeBar();
     }
   }
 
-  function mountBreadcrumb() {
-    if (!enabled.driveBreadcrumb || document.getElementById(BREADCRUMB_ID)) {
+  function syncBar() {
+    const wantBreadcrumb = !!enabled.driveBreadcrumb;
+    if (wantBreadcrumb) {
+      syncBreadcrumbSection(true);
+    } else {
+      removeBar();
+    }
+    syncDocSetupButton(!!enabled.docSetup && IS_DOCS);
+  }
+
+  // 表示するフォルダーがなかったdocId。observerの再発火による再リクエストを防ぐ
+  let breadcrumbEmptyFor = null;
+
+  function syncBreadcrumbSection(want) {
+    if (!want) {
+      closeBreadcrumbPopup();
+      const nav = document.getElementById(BREADCRUMB_ID);
+      if (nav) {
+        nav.remove();
+      }
       return;
     }
-    const menubars = document.getElementById('docs-menubars');
-    const menubar = document.getElementById('docs-menubar');
+    if (document.getElementById(BREADCRUMB_ID)) {
+      return;
+    }
     const docId = extractDocId(location.href);
-    if (!menubars || !menubar || !docId) {
+    if (!docId || docId === breadcrumbEmptyFor) {
+      return;
+    }
+    const bar = ensureBar();
+    if (!bar) {
       return;
     }
 
-    // 先にコンテナを挿入しておき、observerの多重発火による二重リクエストを防ぐ。
-    // メニューバー直下に全幅の行として挿入する（横に置くとウィンドウ幅に依存するため）
-    const container = document.createElement('nav');
-    container.id = BREADCRUMB_ID;
-    const menubarLeft = Math.round(menubar.getBoundingClientRect().left);
-    Object.assign(container.style, {
+    // 先にコンテナを挿入しておき、observerの多重発火による二重リクエストを防ぐ
+    const nav = document.createElement('nav');
+    nav.id = BREADCRUMB_ID;
+    Object.assign(nav.style, {
       display: 'flex',
       alignItems: 'center',
-      height: '24px',
       gap: '4px',
-      paddingLeft: menubarLeft + 'px',
-      fontSize: '12px',
-      color: '#5f6368',
-      whiteSpace: 'nowrap',
+      flex: '1',
+      minWidth: '0',
       overflow: 'hidden',
     });
-    menubars.insertAdjacentElement('afterend', container);
-    relayoutDocs();
+    bar.prepend(nav);
 
-    requestAndRenderBreadcrumb(container, docId);
+    requestAndRenderBreadcrumb(nav, docId);
   }
 
   async function requestAndRenderBreadcrumb(container, docId) {
@@ -226,8 +275,9 @@
     closeBreadcrumbPopup();
     container.textContent = '';
     if (!response || (response.status === 'ok' && response.folders.length === 0)) {
+      breadcrumbEmptyFor = docId;
       container.remove();
-      relayoutDocs();
+      pruneBar();
       return;
     }
 
@@ -312,12 +362,110 @@
     tail.forEach(appendFolder);
   }
 
+  // --- ドキュメント初期設定のワンクリック適用 ---
+
+  // タイトル横のアイコン群（スター・移動などの .docs-titlebar-badges）に並べる。
+  // DocsページはTrusted Types必須のためinnerHTMLは使えず、SVGはDOM APIで組み立てる
+  const DOC_SETUP_ICONS = {
+    // Material Symbols: auto_fix_high（魔法の杖）
+    idle: {
+      color: '#444746',
+      d: 'M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z',
+    },
+    // Material Symbols: check
+    success: { color: '#188038', d: 'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' },
+    // Material Symbols: error
+    error: {
+      color: '#d93025',
+      d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z',
+    },
+  };
+
+  function setDocSetupIcon(button, state) {
+    const icon = DOC_SETUP_ICONS[state];
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('width', '20');
+    svg.setAttribute('height', '20');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', icon.color);
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', icon.d);
+    svg.appendChild(path);
+    button.textContent = '';
+    button.appendChild(svg);
+  }
+
+  function syncDocSetupButton(want) {
+    const existing = document.getElementById(DOC_SETUP_BUTTON_ID);
+    if (!want) {
+      if (existing) {
+        existing.remove();
+      }
+      return;
+    }
+    if (existing) {
+      return;
+    }
+    const docId = extractDocId(location.href);
+    const badges = document.querySelector('.docs-titlebar-badges');
+    if (!docId || !badges) {
+      return;
+    }
+
+    const button = document.createElement('button');
+    button.id = DOC_SETUP_BUTTON_ID;
+    button.title = '初期設定を適用（GWS Tweaks）';
+    Object.assign(button.style, {
+      flex: 'none',
+      width: '28px',
+      height: '28px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: 'none',
+      borderRadius: '9999px',
+      background: 'none',
+      padding: '0',
+      cursor: 'pointer',
+    });
+    setDocSetupIcon(button, 'idle');
+    button.addEventListener('mouseenter', () => (button.style.background = 'rgba(60,64,67,0.08)'));
+    button.addEventListener('mouseleave', () => (button.style.background = 'none'));
+    button.addEventListener('click', () => applyDocSetup(button, docId));
+    badges.appendChild(button);
+  }
+
+  async function applyDocSetup(button, docId) {
+    button.disabled = true;
+    button.style.opacity = '0.38';
+    let response;
+    try {
+      response = await chrome.runtime.sendMessage({ type: 'gwsTweaks.applyDocSetup', docId });
+      // 未認証・スコープ不足の場合は認証してから1回だけやり直す
+      if (response && response.status === 'auth_required') {
+        const auth = await chrome.runtime.sendMessage({ type: 'gwsTweaks.authorize' });
+        if (auth && auth.status === 'ok') {
+          response = await chrome.runtime.sendMessage({ type: 'gwsTweaks.applyDocSetup', docId });
+        }
+      }
+    } catch {
+      response = null;
+    }
+    button.style.opacity = '';
+    setDocSetupIcon(button, response && response.status === 'ok' ? 'success' : 'error');
+    setTimeout(() => {
+      setDocSetupIcon(button, 'idle');
+      button.disabled = false;
+    }, 2000);
+  }
+
   // iframeは動的に生成されるため、現れる（または作り直される）たびに配線する
   bindEventTargetIframe();
-  mountBreadcrumb();
+  syncBar();
   const observer = new MutationObserver(() => {
     bindEventTargetIframe();
-    mountBreadcrumb();
+    syncBar();
   });
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
