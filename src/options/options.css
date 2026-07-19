@@ -1,16 +1,38 @@
 body {
   font-family: system-ui, sans-serif;
-  margin: 16px;
-  min-width: 420px;
+  margin: 0;
   color: #1f1f1f;
 }
 
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
 h1 {
-  font-size: 18px;
+  font-size: 22px;
   margin: 0 0 4px;
 }
 
 .subtitle {
+  font-size: 13px;
+  color: #5f6368;
+  margin: 0 0 24px;
+}
+
+section {
+  margin: 0 0 32px;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+section > .description {
   font-size: 12px;
   color: #5f6368;
   margin: 0 0 16px;
@@ -27,7 +49,7 @@ h1 {
   align-items: flex-start;
   gap: 12px;
   padding: 12px 0;
-  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 #feature-list input[type="checkbox"] {
@@ -45,6 +67,38 @@ h1 {
   margin-top: 2px;
 }
 
+.field-list {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field select {
+  box-sizing: border-box;
+  max-width: 280px;
+  padding: 6px 8px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font: inherit;
+  background: inherit;
+  color: inherit;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
     background: #1f1f1f;
@@ -52,11 +106,19 @@ h1 {
   }
 
   .subtitle,
+  section > .description,
   #feature-list .description {
     color: #9aa0a6;
   }
 
+  h2,
   #feature-list li {
-    border-top-color: #3c4043;
+    border-bottom-color: #3c4043;
+  }
+
+  .field input[type="text"],
+  .field input[type="number"],
+  .field select {
+    border-color: #5f6368;
   }
 }

@@ -1,9 +1,15 @@
 (function () {
   'use strict';
 
-  const { FEATURES, loadFeatureSettings, saveFeatureSettings } = globalThis.GWSTweaks;
+  const {
+    FEATURES,
+    loadFeatureSettings,
+    saveFeatureSettings,
+    loadDocSetupSettings,
+    saveDocSetupSettings,
+  } = globalThis.GWSTweaks;
 
-  async function render() {
+  async function renderFeatures() {
     const settings = await loadFeatureSettings();
     const list = document.getElementById('feature-list');
 
@@ -36,5 +42,32 @@
     }
   }
 
-  render();
+  async function renderDocSetup() {
+    const settings = await loadDocSetupSettings();
+    const fontFamily = document.getElementById('doc-setup-font-family');
+    const fontSize = document.getElementById('doc-setup-font-size');
+    const lineSpacing = document.getElementById('doc-setup-line-spacing');
+    const pageless = document.getElementById('doc-setup-pageless');
+
+    fontFamily.value = settings.fontFamily;
+    fontSize.value = settings.fontSize == null ? '' : String(settings.fontSize);
+    lineSpacing.value = settings.lineSpacing == null ? '' : String(settings.lineSpacing);
+    pageless.checked = settings.pageless;
+
+    async function save() {
+      await saveDocSetupSettings({
+        fontFamily: fontFamily.value.trim(),
+        fontSize: fontSize.value === '' ? null : Number(fontSize.value),
+        lineSpacing: lineSpacing.value === '' ? null : Number(lineSpacing.value),
+        pageless: pageless.checked,
+      });
+    }
+
+    for (const el of [fontFamily, fontSize, lineSpacing, pageless]) {
+      el.addEventListener('change', save);
+    }
+  }
+
+  renderFeatures();
+  renderDocSetup();
 })();

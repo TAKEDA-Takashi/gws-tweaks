@@ -6,10 +6,62 @@
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <h1>GWS Tweaks</h1>
-  <p class="subtitle">有効にする機能を選択してください。変更は開いているドキュメントに即時反映されます。</p>
-  <ul id="feature-list"></ul>
+  <main>
+    <h1>GWS Tweaks</h1>
+    <p class="subtitle">変更は保存操作なしで即時反映されます。</p>
+
+    <section>
+      <h2>機能</h2>
+      <ul id="feature-list"></ul>
+    </section>
+
+    <section>
+      <h2>ドキュメント初期設定</h2>
+      <p class="description">
+        ドキュメントの「初期設定を適用」ボタンで適用する内容です。空欄・「変更しない」の項目はそのままにします。
+        フォント名はGoogle ドキュメントのフォント一覧の表記と完全に一致させてください。
+      </p>
+      <div class="field-list">
+        <div class="field">
+          <label for="doc-setup-font-family">フォント</label>
+          <input type="text" id="doc-setup-font-family" list="font-suggestions" placeholder="変更しない（例: BIZ UDPGothic）">
+          <datalist id="font-suggestions">
+            <option value="Arial"></option>
+            <option value="Roboto"></option>
+            <option value="Noto Sans JP"></option>
+            <option value="Noto Serif JP"></option>
+            <option value="BIZ UDGothic"></option>
+            <option value="BIZ UDPGothic"></option>
+            <option value="BIZ UDPMincho"></option>
+            <option value="M PLUS 1p"></option>
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="doc-setup-font-size">フォントサイズ（pt）</label>
+          <input type="number" id="doc-setup-font-size" min="6" max="96" step="0.5" placeholder="変更しない">
+        </div>
+        <div class="field">
+          <label for="doc-setup-line-spacing">行間</label>
+          <select id="doc-setup-line-spacing">
+            <option value="">変更しない</option>
+            <option value="1">シングル（1）</option>
+            <option value="1.15">1.15</option>
+            <option value="1.5">1.5</option>
+            <option value="2">ダブル（2）</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">ページ設定</span>
+          <label class="checkbox-label">
+            <input type="checkbox" id="doc-setup-pageless">
+            ページ分けなしにする
+          </label>
+        </div>
+      </div>
+    </section>
+  </main>
   <script src="../lib/features.js"></script>
+  <script src="../lib/doc-setup.js"></script>
   <script src="options.js"></script>
 </body>
 </html>
