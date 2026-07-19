@@ -38,7 +38,18 @@ npm test -- --run test/markdown-link.test.js  # 単一ファイルのテスト
 
 ### フォルダーパス（パンくず）表示の仕組み
 
-content scriptがservice worker経由でDrive APIから親フォルダー階層を取得し、`#docs-menubars` の直後に全幅の行（高さ24px）として挿入する。ヘッダー・本文領域の高さは固定計算のため、**行の挿入・削除のたびに `window` へ `resize` イベントをdispatchして再レイアウトさせる必要がある**（これを怠るとツールバー以下に重なる）。タイトル横やメニューバー右側への配置は、右側アイコン群との重なりやウィンドウ幅依存の問題があり不採用になった経緯がある。`#docs-menubars` 等のヘッダーDOMはドキュメント・スプレッドシート・スライドで同一（実機確認済み）。
+`#docs-menubars` の直後に全幅の行（高さ24px、`#gws-tweaks-bar`）を挿入し、パンくずを載せる。ヘッダー・本文領域の高さは固定計算のため、**行の挿入・削除のたびに `window` へ `resize` イベントをdispatchして再レイアウトさせる必要がある**（これを怠るとツールバー以下に重なる）。タイトル横やメニューバー右側への配置は、右側アイコン群との重なりやウィンドウ幅依存の問題があり不採用になった経緯がある。`#docs-menubars` 等のヘッダーDOMはドキュメント・スプレッドシート・スライドで同一（実機確認済み）。
+
+パンくずはcontent scriptがservice worker経由でDrive APIから親フォルダー階層を取得して表示する。表示するフォルダーがなかったdocIdは `breadcrumbEmptyFor` に記録し、MutationObserverの再発火による「挿入→空→削除」の無限ループを防ぐ。
+
+### ドキュメント初期設定のワンクリック適用の仕組み
+
+タイトル横のアイコン群（`.docs-titlebar-badges`、スター・移動アイコンなどの28x28ボタンの並び）に追加した魔法の杖ボタン（ドキュメントのみ）から、`chrome.storage.sync` の `docSetup` キーに保存した設定（フォント・サイズ・行間・ページ分けなし）をDocs APIの `batchUpdate` で適用する。結果はアイコンをチェック（緑）／エラー（赤）に2秒間差し替えて通知する。リクエストの組み立ては `src/lib/doc-setup.js`（純粋ロジック、テスト対象）。要点:
+
+- ページ分けなしは `updateDocumentStyle` の `documentStyle.documentFormat.documentMode = 'PAGELESS'`（比較的新しいAPIフィールド）
+- フォント・行間は `documents.get` で本文終端の `endIndex` を取り、`{startIndex: 1, endIndex}` の範囲に `updateTextStyle` / `updateParagraphStyle` を適用する。行間は100倍のパーセント指定（1.15 → 115、浮動小数点誤差の丸めが必要）
+- OAuthスコープに `https://www.googleapis.com/auth/documents`、host_permissionsに `docs.googleapis.com` が必要。スコープ不足（403）時はトークンを破棄して再認証を促す
+- DocsページはTrusted Types必須（`require-trusted-types-for 'script'`）のため、content scriptでも `innerHTML` への代入は例外になる。SVGアイコン等は `createElementNS` などのDOM APIで組み立てること
 
 ### Markdownリンク貼り付けの仕組み（既存機能の例）
 

@@ -29,21 +29,32 @@ Google Docs標準のMarkdown自動検出はタイトルが98文字以上だと�
 - フォルダー階層の取得にはDrive APIを利用し、取得したデータは端末外に送信しません
 - ChromeにログインしているGoogleアカウントとドキュメントを開いているアカウントが異なる場合は表示されません
 
-## インストール（開発版）
+### ドキュメント初期設定のワンクリック適用（Google ドキュメント）
+
+タイトル横（スター・移動アイコンの並び）の魔法の杖アイコンから、設定画面で指定した内容を
+開いているドキュメントにまとめて適用します。新規作成のたびに手動で行っていた
+フォント・行間・ページ設定の変更をワンクリックにするための機能です。
+
+- 適用できる項目: フォント、フォントサイズ、行間、ページ分けなし
+- 空欄・「変更しない」にした項目はそのまま（未設定でもページ分けなしのみ適用、なども可能）
+- フォント・行間は本文全体に適用されます（空のドキュメントなら以降の入力に反映）
+- 適用にはGoogle Docs API（ドキュメントの編集権限）の認証が必要。初回クリック時に認証画面が開きます
+- ドキュメントの内容は端末外に送信しません（Docs APIへの適用リクエストのみ）
 
 1. Chromeで `chrome://extensions` を開く
 2. 「デベロッパーモード」をON
 3. 「パッケージ化されていない拡張機能を読み込む」でこのリポジトリのルートを選択
 
-フォルダーパス表示機能はGoogle CloudのOAuthクライアントを利用します。`manifest.json` の
-`oauth2.client_id` は `key` フィールドで固定された拡張ID（開発版）に紐づいています。
-自分のGoogle Cloudプロジェクトで使う場合は、OAuth同意画面（スコープ:
-`drive.metadata.readonly`）と「Chrome拡張機能」タイプのOAuthクライアントを作成し、
-`client_id` を差し替えてください。
+フォルダーパス表示とドキュメント初期設定はGoogle CloudのOAuthクライアントを利用します。
+`manifest.json` の `oauth2.client_id` は `key` フィールドで固定された拡張ID（開発版）に
+紐づいています。自分のGoogle Cloudプロジェクトで使う場合は、OAuth同意画面（スコープ:
+`drive.metadata.readonly`、`documents`）と「Chrome拡張機能」タイプのOAuthクライアントを
+作成し、`client_id` を差し替えてください。
 
 ## 設定
 
-`chrome://extensions` → GWS Tweaks → 「拡張機能のオプション」から各機能をON/OFFできます。
+`chrome://extensions` → GWS Tweaks → 「拡張機能のオプション」から、各機能のON/OFFと
+ドキュメント初期設定（フォント・フォントサイズ・行間・ページ分けなし）を変更できます。
 設定は `chrome.storage.sync` に保存され、開いているページに即時反映されます。
 
 ## 開発
@@ -59,9 +70,10 @@ npm test -- --run
 manifest.json                    # Manifest V3定義
 src/lib/markdown-link.js         # Markdownリンク解析（純粋ロジック、テスト対象）
 src/lib/breadcrumb.js            # フォルダー階層の組み立て（純粋ロジック、テスト対象）
+src/lib/doc-setup.js             # 初期設定のbatchUpdateリクエスト組み立て（純粋ロジック、テスト対象）
 src/lib/features.js              # 機能レジストリと設定の読み書き
 src/content/main.js              # content script本体（UI注入とイベント配線）
-src/background/service-worker.js # Drive API呼び出しとOAuth認証
+src/background/service-worker.js # Drive API・Docs API呼び出しとOAuth認証
 src/options/                     # 設定画面
 test/                            # vitestによるユニットテスト
 ```
