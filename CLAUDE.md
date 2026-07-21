@@ -44,10 +44,11 @@ npm test -- --run test/markdown-paste.test.js  # 単一ファイルのテスト
 
 ### ドキュメント初期設定のワンクリック適用の仕組み
 
-タイトル横のアイコン群（`.docs-titlebar-badges`、スター・移動アイコンなどの28x28ボタンの並び）に追加した魔法の杖ボタン（ドキュメントのみ）から、`chrome.storage.sync` の `docSetup` キーに保存した設定（フォント・サイズ・行間・ページ分けなし）をDocs APIの `batchUpdate` で適用する。結果はアイコンをチェック（緑）／エラー（赤）に2秒間差し替えて通知する。リクエストの組み立ては `src/lib/doc-setup.js`（純粋ロジック、テスト対象）。要点:
+タイトル横のアイコン群（`.docs-titlebar-badges`、スター・移動アイコンなどの28x28ボタンの並び）に追加した魔法の杖ボタン（ドキュメントのみ）から、`chrome.storage.sync` の `docSetup` キーに保存した設定（フォント・サイズ・行間・インデント幅・ページ分けなし）をDocs APIの `batchUpdate` で適用する。結果はアイコンをチェック（緑）／エラー（赤）に2秒間差し替えて通知する。リクエストの組み立ては `src/lib/doc-setup.js`（純粋ロジック、テスト対象）。要点:
 
 - ページ分けなしは `updateDocumentStyle` の `documentStyle.documentFormat.documentMode = 'PAGELESS'`（比較的新しいAPIフィールド）
 - フォント・行間は `documents.get` で本文終端の `endIndex` を取り、`{startIndex: 1, endIndex}` の範囲に `updateTextStyle` / `updateParagraphStyle` を適用する。行間は100倍のパーセント指定（1.15 → 115、浮動小数点誤差の丸めが必要）
+- 箇条書き・インデント幅は、リスト自体のインデント定義（`lists.nestingLevels`）をAPIで変更できないため、段落単位の `updateParagraphStyle`（`indentStart` / `indentFirstLine`、リスト定義より優先される）で上書きする。箇条書きは `paragraph.bullet.nestingLevel` から `indentStart = 幅×(レベル+1)`、記号位置は本文−18pt（幅が18pt未満なら幅と同じ間隔）。インデント済みの通常段落は `indentStart` を36pt基準で比例配分。既存段落への上書きのみで、適用後に新しく作ったリストは標準幅に戻る（再適用でカバーする運用）
 - OAuthスコープに `https://www.googleapis.com/auth/documents`、host_permissionsに `docs.googleapis.com` が必要。スコープ不足（403）時はトークンを破棄して再認証を促す
 - DocsページはTrusted Types必須（`require-trusted-types-for 'script'`）のため、content scriptでも `innerHTML` への代入は例外になる。SVGアイコン等は `createElementNS` などのDOM APIで組み立てること
 
