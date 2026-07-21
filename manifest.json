@@ -4,6 +4,12 @@
   "version": "0.1.0",
   "description": "Google Workspace にちょっとした便利機能を追加します。",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7Ep25UJJhmXnFiHtqDV0+D0TvexDSu6NuWmSz7K893OiTr/AvWGw9g+63/B4QlgZ64/hCmv82pyWqVWzULOfx0TWjZRfu8KxxtTajXCCkyTo2XiyoYR1A1+siSrbt4cndChucH7hJIX2TbD5ixdv3R0pdfZy3DmYUd2x16tBVvpTPk41Q9GEyFii4kpJ2a/BP99g3IkrOTNY1LDiQTDa+rVwi162daYxpje55lSi3ZunN3VfXe8IIGh+QbrQatBwgg42a1YZ/ahnQE+zP9jyjpUqK63ZlCzVbzBpQzvWqtF2z4wLstMrfuVEJTDw+wKDQxGAXrg3L15turJLHJH3xQIDAQAB",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "permissions": ["storage", "identity"],
   "host_permissions": ["https://www.googleapis.com/*", "https://docs.googleapis.com/*"],
   "oauth2": {
