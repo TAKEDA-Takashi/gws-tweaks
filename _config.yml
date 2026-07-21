@@ -1,0 +1,13 @@
+# GitHub Pagesの設定。サイトとして公開するのはプライバシーポリシーのみ
+title: GWS Tweaks
+exclude:
+  - README.md
+  - CLAUDE.md
+  - docs/
+  - src/
+  - icons/
+  - scripts/
+  - test/
+  - manifest.json
+  - package.json
+  - package-lock.json

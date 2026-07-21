@@ -1,3 +1,8 @@
+---
+title: GWS Tweaks プライバシーポリシー
+permalink: /
+---
+
 # GWS Tweaks プライバシーポリシー
 
 最終更新日: 2026-07-21

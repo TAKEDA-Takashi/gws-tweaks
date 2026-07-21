@@ -37,9 +37,9 @@
 
 ## プライバシーポリシーのURL
 
-GitHub Pages（mainブランチのルートから配信）で公開済み。ダッシュボードの「プライバシー」タブには次のURLを指定する:
+GitHub Pages（mainブランチのルートから配信、`_config.yml` でポリシー以外は除外）で公開済み。ダッシュボードの「プライバシー」タブには次のURLを指定する:
 
-- https://takeda-takashi.github.io/gws-tweaks/PRIVACY.html
+- https://takeda-takashi.github.io/gws-tweaks/
 
 ## ストア掲載情報ドラフト
 
