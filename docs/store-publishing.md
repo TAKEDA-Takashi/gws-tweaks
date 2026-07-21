@@ -37,10 +37,9 @@
 
 ## プライバシーポリシーのURL
 
-ダッシュボードの「プライバシー」タブには公開URLが必要。リポジトリの `PRIVACY.md` を使う場合は、GitHubへpublicでpushして次のいずれかを指定する:
+GitHub Pages（mainブランチのルートから配信）で公開済み。ダッシュボードの「プライバシー」タブには次のURLを指定する:
 
-- `https://github.com/TAKEDA-Takashi/gws-tweaks/blob/main/PRIVACY.md`
-- GitHub Pagesを有効にしたURL
+- https://takeda-takashi.github.io/gws-tweaks/PRIVACY.html
 
 ## ストア掲載情報ドラフト
 
