@@ -11,7 +11,7 @@ Google Workspace（ドキュメント、Gmail、カレンダーなど）に便�
 ```bash
 npm install
 npm test -- --run                      # 全テスト実行（--run必須、なしだとwatchモードで止まる）
-npm test -- --run test/markdown-link.test.js  # 単一ファイルのテスト
+npm test -- --run test/markdown-paste.test.js  # 単一ファイルのテスト
 ```
 
 ## アーキテクチャ
@@ -51,6 +51,11 @@ npm test -- --run test/markdown-link.test.js  # 単一ファイルのテスト
 - OAuthスコープに `https://www.googleapis.com/auth/documents`、host_permissionsに `docs.googleapis.com` が必要。スコープ不足（403）時はトークンを破棄して再認証を促す
 - DocsページはTrusted Types必須（`require-trusted-types-for 'script'`）のため、content scriptでも `innerHTML` への代入は例外になる。SVGアイコン等は `createElementNS` などのDOM APIで組み立てること
 
-### Markdownリンク貼り付けの仕組み（既存機能の例）
+### Cmd+Vでマークダウンから貼り付けの仕組み
 
-Docs標準のMarkdown自動検出はタイトル98文字以上で失敗するため、pasteイベントをキャプチャ段階で傍受し、`preventDefault` + `stopImmediatePropagation` した上でHTMLアンカーを載せた合成pasteイベントに差し替える。合成イベントには `__gwsTweaksSynthetic` フラグを付けて再帰処理を防ぐ。
+Docsの編集メニュー項目（`.goog-menuitem`）は、**信頼されたユーザー操作（実キー入力・実クリック）のハンドラ内からであれば**合成マウスイベントで起動できる（信頼されたイベントの外から合成イベントだけで起動しようとしても無視される）。また、項目の起動にはメニューが開いた状態である必要があるため、メニューボタンへ合成mousedown/mouseupを送って開いてから項目を起動する。同一タスク内で完結させれば描画が発生せず、メニューは画面にちらつかない（実機確認済み）。
+
+- `docs-texteventtarget-iframe` 内のkeydownをキャプチャ段階で傍受してCmd+Vを検出し、`preventDefault` + `stopImmediatePropagation` してから「マークダウンから貼り付け」項目を起動する。編集メニュー・右クリックメニューからの貼り付けは変更しない
+- 項目はテキストラベルで特定する（IDは `:7f` のような動的生成のため不可）。判定ロジックは `src/lib/markdown-paste.js`。対応ラベルは日本語「マークダウンから貼り付け」と英語「Paste from Markdown」
+- **項目が見つからないときはpreventDefaultせず通常の貼り付けにフォールバック**する（未対応のUI言語、ツール→設定でMarkdownが無効、メニュー未レンダリングの場合にCmd+Vを壊さないため）
+- Docsのメニュー経由の貼り付けはページのclipboard API（`navigator.clipboard`）を使わない（permissionが `prompt` のままでも動作する。Docsオフライン拡張連携の内部経路とみられる）
