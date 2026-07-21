@@ -8,8 +8,13 @@
     fontFamily: '',
     fontSize: null,
     lineSpacing: null,
+    indentUnit: null,
     pageless: true,
   };
+
+  // Docsの既定は1レベルあたり36pt、箇条書き記号と本文の間隔は18pt
+  const DEFAULT_INDENT_UNIT_PT = 36;
+  const BULLET_TEXT_GAP_PT = 18;
 
   async function loadDocSetupSettings() {
     const stored = await chrome.storage.sync.get({ docSetup: {} });
@@ -73,11 +78,80 @@
     return requests;
   }
 
+  function roundPt(value) {
+    return Math.round(value * 100) / 100;
+  }
+
+  // 本文の箇条書き・インデント済み段落を「1レベルあたりunitPt」のインデントに揃える
+  // リクエストを組み立てる。リスト自体のインデント定義（lists.nestingLevels）はAPIで
+  // 変更できないため、段落スタイルの上書きで実現する（既存の段落のみが対象）。
+  function buildIndentRequests(content, unitPt) {
+    if (!unitPt || !Array.isArray(content)) {
+      return [];
+    }
+    const gap = Math.min(BULLET_TEXT_GAP_PT, unitPt);
+    const requests = [];
+    let last = null;
+
+    for (const element of content) {
+      const paragraph = element && element.paragraph;
+      if (
+        !paragraph ||
+        typeof element.startIndex !== 'number' ||
+        typeof element.endIndex !== 'number'
+      ) {
+        last = null;
+        continue;
+      }
+
+      let paragraphStyle = null;
+      let fields = '';
+      if (paragraph.bullet) {
+        const level = paragraph.bullet.nestingLevel || 0;
+        const indentStart = roundPt(unitPt * (level + 1));
+        paragraphStyle = {
+          indentStart: { magnitude: indentStart, unit: 'PT' },
+          indentFirstLine: { magnitude: roundPt(indentStart - gap), unit: 'PT' },
+        };
+        fields = 'indentStart,indentFirstLine';
+      } else {
+        const style = paragraph.paragraphStyle;
+        const current = style && style.indentStart && style.indentStart.magnitude;
+        if (current > 0) {
+          paragraphStyle = {
+            indentStart: {
+              magnitude: roundPt((current * unitPt) / DEFAULT_INDENT_UNIT_PT),
+              unit: 'PT',
+            },
+          };
+          fields = 'indentStart';
+        }
+      }
+      if (!paragraphStyle) {
+        last = null;
+        continue;
+      }
+
+      // 連続する同じインデントの段落は1つの範囲にまとめてリクエスト数を減らす
+      const key = fields + JSON.stringify(paragraphStyle);
+      if (last && last.key === key && last.range.endIndex === element.startIndex) {
+        last.range.endIndex = element.endIndex;
+        continue;
+      }
+      const range = { startIndex: element.startIndex, endIndex: element.endIndex };
+      requests.push({ updateParagraphStyle: { range, paragraphStyle, fields } });
+      last = { key, range };
+    }
+
+    return requests;
+  }
+
   root.GWSTweaks = Object.assign(root.GWSTweaks || {}, {
     DOC_SETUP_DEFAULTS,
     loadDocSetupSettings,
     saveDocSetupSettings,
     bodyEndIndex,
     buildDocSetupRequests,
+    buildIndentRequests,
   });
 })(globalThis);
