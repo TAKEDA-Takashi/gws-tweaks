@@ -25,7 +25,7 @@ npm test -- --run test/markdown-paste.test.js  # 単一ファイルのテスト
 - `src/background/service-worker.js` — Drive API呼び出しとOAuth認証（`chrome.identity.getAuthToken`）。content scriptとは `chrome.runtime.sendMessage` で連携し、`importScripts('/src/lib/...')` でlibを読み込む。取得データは端末外に送信しない方針（OAuthのセキュリティ評価免除の条件）
 - `src/options/` — 設定画面。`FEATURES` レジストリから自動でUIを生成する
 
-`manifest.json` の `key` は拡張IDを固定するための公開鍵（対の秘密鍵は `extension-key.pem`、git管理外）。OAuthクライアントIDはこの拡張IDに紐づくため変更しないこと。
+`manifest.json` の `key` は拡張IDを固定するための公開鍵（対の秘密鍵は `extension-key.pem`、git管理外）。OAuthクライアントIDはこの拡張IDに紐づくため変更しないこと。Chrome Web Storeへの提出は `npm run package`（初回は `key` なし、Store公開鍵への差し替え後は `--keep-key`）。手順と掲載情報ドラフトは `docs/store-publishing.md` を参照。
 
 ### 機能レジストリ
 

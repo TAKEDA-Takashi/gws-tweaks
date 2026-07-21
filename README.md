@@ -63,12 +63,14 @@ Cmd+V（Ctrl+V）の貼り付けを、編集メニューにある「マークダ
 ```bash
 npm install
 npm test -- --run
+npm run package    # Chrome Web Store提出用のzipをdist/に作成（詳細は docs/store-publishing.md）
 ```
 
 ### 構成
 
 ```
 manifest.json                    # Manifest V3定義
+icons/                           # 拡張機能アイコン
 src/lib/markdown-paste.js        # 貼り付けメニュー項目ラベルの判定（純粋ロジック、テスト対象）
 src/lib/breadcrumb.js            # フォルダー階層の組み立て（純粋ロジック、テスト対象）
 src/lib/doc-setup.js             # 初期設定のbatchUpdateリクエスト組み立て（純粋ロジック、テスト対象）
@@ -76,7 +78,10 @@ src/lib/features.js              # 機能レジストリと設定の読み書き
 src/content/main.js              # content script本体（UI注入とイベント配線）
 src/background/service-worker.js # Drive API・Docs API呼び出しとOAuth認証
 src/options/                     # 設定画面
+scripts/package.mjs              # Store提出用パッケージング
 test/                            # vitestによるユニットテスト
+PRIVACY.md                       # プライバシーポリシー
+docs/store-publishing.md         # Chrome Web Store公開手順
 ```
 
 ### 機能の追加方法
