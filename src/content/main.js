@@ -496,6 +496,9 @@
       response = null;
     }
     button.style.opacity = '';
+    if (!response || response.status !== 'ok') {
+      console.error('[GWS Tweaks] 初期設定の適用に失敗:', response);
+    }
     setDocSetupIcon(button, response && response.status === 'ok' ? 'success' : 'error');
     setTimeout(() => {
       setDocSetupIcon(button, 'idle');

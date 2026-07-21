@@ -99,6 +99,13 @@ importScripts('/src/lib/breadcrumb.js', '/src/lib/doc-setup.js');
       return res;
     }
 
+    // APIエラーの詳細メッセージを取り出す（レスポンスボディはJSONのerror.message）
+    async function docsErrorMessage(res) {
+      const body = await res.json().catch(() => null);
+      const detail = body && body.error && body.error.message;
+      return 'Docs API error: ' + res.status + (detail ? ' - ' + detail : '');
+    }
+
     const baseUrl = 'https://docs.googleapis.com/v1/documents/' + encodeURIComponent(docId);
     // bulletはネストレベル0でnestingLevelが省略されるためオブジェクト全体を要求する
     const getRes = await docsFetch(
@@ -109,7 +116,7 @@ importScripts('/src/lib/breadcrumb.js', '/src/lib/doc-setup.js');
       return { status: 'auth_required' };
     }
     if (!getRes.ok) {
-      return { status: 'error', message: 'Docs API error: ' + getRes.status };
+      return { status: 'error', message: await docsErrorMessage(getRes) };
     }
     const doc = await getRes.json();
 
@@ -127,7 +134,7 @@ importScripts('/src/lib/breadcrumb.js', '/src/lib/doc-setup.js');
       body: JSON.stringify({ requests }),
     });
     if (!updateRes.ok) {
-      return { status: 'error', message: 'Docs API error: ' + updateRes.status };
+      return { status: 'error', message: await docsErrorMessage(updateRes) };
     }
     return { status: 'ok', applied: requests.length };
   }
