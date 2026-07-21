@@ -8,8 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const keepKey = process.argv.includes('--keep-key');
 const root = fileURLToPath(new URL('..', import.meta.url));
+const ext = root + 'extension/';
 
-const manifest = JSON.parse(readFileSync(root + 'manifest.json', 'utf8'));
+const manifest = JSON.parse(readFileSync(ext + 'manifest.json', 'utf8'));
 if (!keepKey) {
   delete manifest.key;
 }
@@ -18,8 +19,8 @@ const stage = root + 'dist/package';
 rmSync(root + 'dist', { recursive: true, force: true });
 mkdirSync(stage, { recursive: true });
 writeFileSync(stage + '/manifest.json', JSON.stringify(manifest, null, 2) + '\n');
-cpSync(root + 'src', stage + '/src', { recursive: true });
-cpSync(root + 'icons', stage + '/icons', { recursive: true });
+cpSync(ext + 'src', stage + '/src', { recursive: true });
+cpSync(ext + 'icons', stage + '/icons', { recursive: true });
 
 const zipName = 'gws-tweaks-v' + manifest.version + '.zip';
 execFileSync('zip', ['-r', '-X', '../' + zipName, '.'], { cwd: stage, stdio: 'inherit' });

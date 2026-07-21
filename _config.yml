@@ -4,10 +4,8 @@ exclude:
   - README.md
   - CLAUDE.md
   - docs/
-  - src/
-  - icons/
+  - extension/
   - scripts/
   - test/
-  - manifest.json
   - package.json
   - package-lock.json

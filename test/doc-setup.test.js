@@ -5,7 +5,7 @@ let buildIndentRequests;
 let bodyEndIndex;
 
 beforeAll(async () => {
-  await import('../src/lib/doc-setup.js');
+  await import('../extension/src/lib/doc-setup.js');
   ({ buildDocSetupRequests, buildIndentRequests, bodyEndIndex } = globalThis.GWSTweaks);
 });
 

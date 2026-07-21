@@ -44,7 +44,7 @@ Cmd+V（Ctrl+V）の貼り付けを、編集メニューにある「マークダ
 
 1. Chromeで `chrome://extensions` を開く
 2. 「デベロッパーモード」をON
-3. 「パッケージ化されていない拡張機能を読み込む」でこのリポジトリのルートを選択
+3. 「パッケージ化されていない拡張機能を読み込む」でこのリポジトリの `extension/` ディレクトリを選択
 
 フォルダーパス表示とドキュメント初期設定はGoogle CloudのOAuthクライアントを利用します。
 `manifest.json` の `oauth2.client_id` は `key` フィールドで固定された拡張ID（開発版）に
@@ -69,18 +69,19 @@ npm run package    # Chrome Web Store提出用のzipをdist/に作成（詳細�
 ### 構成
 
 ```
-manifest.json                    # Manifest V3定義
-icons/                           # 拡張機能アイコン
-src/lib/markdown-paste.js        # 貼り付けメニュー項目ラベルの判定（純粋ロジック、テスト対象）
-src/lib/breadcrumb.js            # フォルダー階層の組み立て（純粋ロジック、テスト対象）
-src/lib/doc-setup.js             # 初期設定のbatchUpdateリクエスト組み立て（純粋ロジック、テスト対象）
-src/lib/features.js              # 機能レジストリと設定の読み書き
-src/content/main.js              # content script本体（UI注入とイベント配線）
-src/background/service-worker.js # Drive API・Docs API呼び出しとOAuth認証
-src/options/                     # 設定画面
+extension/                       # Chromeに読み込む拡張本体
+  manifest.json                  #   Manifest V3定義
+  icons/                         #   拡張機能アイコン
+  src/lib/markdown-paste.js      #   貼り付けメニュー項目ラベルの判定（純粋ロジック、テスト対象）
+  src/lib/breadcrumb.js          #   フォルダー階層の組み立て（純粋ロジック、テスト対象）
+  src/lib/doc-setup.js           #   初期設定のbatchUpdateリクエスト組み立て（純粋ロジック、テスト対象）
+  src/lib/features.js            #   機能レジストリと設定の読み書き
+  src/content/main.js            #   content script本体（UI注入とイベント配線）
+  src/background/service-worker.js #  Drive API・Docs API呼び出しとOAuth認証
+  src/options/                   #   設定画面
 scripts/package.mjs              # Store提出用パッケージング
 test/                            # vitestによるユニットテスト
-PRIVACY.md                       # プライバシーポリシー
+PRIVACY.md                       # プライバシーポリシー（GitHub Pagesで公開）
 docs/store-publishing.md         # Chrome Web Store公開手順
 ```
 

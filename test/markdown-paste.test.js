@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 let isMarkdownPasteLabel;
 
 beforeAll(async () => {
-  await import('../src/lib/markdown-paste.js');
+  await import('../extension/src/lib/markdown-paste.js');
   ({ isMarkdownPasteLabel } = globalThis.GWSTweaks);
 });
 

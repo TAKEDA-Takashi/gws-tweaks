@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 概要
 
-Google Workspace（ドキュメント、Gmail、カレンダーなど）に便利機能を追加するChrome拡張（Manifest V3）。content scriptはドキュメント・スプレッドシート・スライドで共通に動作し（3アプリのヘッダーDOMは同一構造）、Docs固有機能は `IS_DOCS` でガードする。アプリ固有機能が増えて見通しが悪くなったら `src/content/` をアプリ別に再編する方針。ビルドステップはなく、リポジトリのルートをそのまま「パッケージ化されていない拡張機能」としてChromeに読み込む。lint・typecheckは未設定で、品質チェックはテストのみ。
+Google Workspace（ドキュメント、Gmail、カレンダーなど）に便利機能を追加するChrome拡張（Manifest V3）。content scriptはドキュメント・スプレッドシート・スライドで共通に動作し（3アプリのヘッダーDOMは同一構造）、Docs固有機能は `IS_DOCS` でガードする。アプリ固有機能が増えて見通しが悪くなったら `extension/src/content/` をアプリ別に再編する方針。ビルドステップはなく、`extension/` ディレクトリをそのまま「パッケージ化されていない拡張機能」としてChromeに読み込む（リポジトリのルートは不可。`_config.yml` など `_` 始まりのファイルがあるとChromeが拒否するため、拡張本体はルートから分離している）。lint・typecheckは未設定で、品質チェックはテストのみ。
 
 ## コマンド
 
@@ -16,11 +16,11 @@ npm test -- --run test/markdown-paste.test.js  # 単一ファイルのテスト
 
 ## アーキテクチャ
 
-モジュールバンドラを使わないため、`src/lib/` の各ファイルはIIFEで `globalThis.GWSTweaks` 名前空間にAPIを公開する（`Object.assign(root.GWSTweaks || {}, ...)` パターン）。content scriptは `manifest.json` の `js` 配列で lib → main の順にロードされ、設定画面（options.html）も `<script>` タグで同じlibを読み込む。テストは `import()` でファイルを実行してから `globalThis.GWSTweaks` を分割代入する。
+拡張本体は `extension/` 配下（`manifest.json`・`src/`・`icons/`）。モジュールバンドラを使わないため、`extension/src/lib/` の各ファイルはIIFEで `globalThis.GWSTweaks` 名前空間にAPIを公開する（`Object.assign(root.GWSTweaks || {}, ...)` パターン）。content scriptは `manifest.json` の `js` 配列で lib → main の順にロードされ、設定画面（options.html）も `<script>` タグで同じlibを読み込む。テストは `import()` でファイルを実行してから `globalThis.GWSTweaks` を分割代入する。
 
-役割分担:
+役割分担（パスは `extension/` からの相対）:
 
-- `src/lib/` — 純粋ロジックと共有コード。DOM・Docs固有のAPIに依存しない部分はここに置き、`test/` にvitestでテストを書く（テスト対象はこの層のみ）
+- `src/lib/` — 純粋ロジックと共有コード。DOM・Docs固有のAPIに依存しない部分はここに置き、リポジトリルートの `test/` にvitestでテストを書く（テスト対象はこの層のみ）
 - `src/content/main.js` — content script本体。Google Docsの入力イベントは `iframe.docs-texteventtarget-iframe` 内のdocumentに届くため、MutationObserverでこのiframeの出現・再生成を監視して各機能のイベントリスナーを配線する
 - `src/background/service-worker.js` — Drive API呼び出しとOAuth認証（`chrome.identity.getAuthToken`）。content scriptとは `chrome.runtime.sendMessage` で連携し、`importScripts('/src/lib/...')` でlibを読み込む。取得データは端末外に送信しない方針（OAuthのセキュリティ評価免除の条件）
 - `src/options/` — 設定画面。`FEATURES` レジストリから自動でUIを生成する

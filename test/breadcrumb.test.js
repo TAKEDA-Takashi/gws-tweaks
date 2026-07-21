@@ -6,7 +6,7 @@ let folderUrl;
 let collapseBreadcrumb;
 
 beforeAll(async () => {
-  await import('../src/lib/breadcrumb.js');
+  await import('../extension/src/lib/breadcrumb.js');
   ({ extractDocId, buildBreadcrumb, folderUrl, collapseBreadcrumb } = globalThis.GWSTweaks);
 });
 
