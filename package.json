@@ -4,7 +4,8 @@
   "private": true,
   "description": "Google Workspace にちょっとした便利機能を追加するChrome拡張",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "package": "node scripts/package.mjs"
   },
   "devDependencies": {
     "vitest": "^3.2.4"
