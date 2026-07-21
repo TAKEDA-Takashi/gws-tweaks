@@ -24,7 +24,7 @@
         "https://docs.google.com/presentation/*"
       ],
       "js": [
-        "src/lib/markdown-link.js",
+        "src/lib/markdown-paste.js",
         "src/lib/breadcrumb.js",
         "src/lib/doc-setup.js",
         "src/lib/features.js",

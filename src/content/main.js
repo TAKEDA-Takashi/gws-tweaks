@@ -2,12 +2,11 @@
 (function () {
   'use strict';
 
-  // Markdownリンク貼り付けなどDocs固有の機能はドキュメントでのみ有効にする
+  // 貼り付けの入れ替えなどDocs固有の機能はドキュメントでのみ有効にする
   const IS_DOCS = location.pathname.startsWith('/document/');
 
   const {
-    parseMarkdownLink,
-    buildAnchorHtml,
+    isMarkdownPasteLabel,
     loadFeatureSettings,
     extractDocId,
     folderUrl,
@@ -30,34 +29,78 @@
     }
   });
 
-  // Docsが処理する前に貼り付けを傍受し、Markdownリンク単体ならHTMLアンカーの
-  // 合成pasteイベントに差し替える。HTML貼り付け経路はタイトル長制限を受けない。
-  function handlePaste(event) {
-    if (!enabled.markdownLinkPaste) {
-      return;
-    }
-    if (event.__gwsTweaksSynthetic) {
-      return;
-    }
-    const link = parseMarkdownLink(event.clipboardData.getData('text/plain'));
-    if (!link) {
-      return;
-    }
+  // --- Cmd+Vをマークダウンから貼り付けに変更 ---
+  //
+  // Docsの編集メニュー項目は、合成マウスイベントでも「信頼された
+  // ユーザー操作（実際のキー入力・クリック）のハンドラ内」からであれば起動できる。
+  // これを利用して、Cmd+Vのハンドラ内から「マークダウンから貼り付け」を起動する。
+  // 編集メニュー・右クリックメニューからの貼り付けは変更しない。
 
+  function fireMouse(el, type, x, y) {
+    el.dispatchEvent(
+      new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        buttons: 1,
+        clientX: x || 0,
+        clientY: y || 0,
+      })
+    );
+  }
+
+  function findMenuItem(labelPred) {
+    return (
+      [...document.querySelectorAll('.goog-menuitem')].find((el) => labelPred(el.textContent)) ||
+      null
+    );
+  }
+
+  // 編集メニューを開いて項目を起動する。メニューが開いた状態でないと項目が
+  // 反応しないため先に開くが、同一タスク内で完結するので描画されず
+  // ちらつかない（実機確認済み）。
+  function activateEditMenuItem(item) {
+    const editButton = document.getElementById('docs-edit-menu');
+    if (!editButton) {
+      return;
+    }
+    fireMouse(editButton, 'mousedown');
+    fireMouse(editButton, 'mouseup');
+    if (item.getAttribute('aria-disabled') === 'true') {
+      // 起動できないときは開いたメニューを閉じて元に戻す
+      fireMouse(editButton, 'mousedown');
+      fireMouse(editButton, 'mouseup');
+      return;
+    }
+    const rect = item.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    fireMouse(item, 'mouseover', cx, cy);
+    fireMouse(item, 'mousedown', cx, cy);
+    fireMouse(item, 'mouseup', cx, cy);
+    fireMouse(item, 'click', cx, cy);
+  }
+
+  // Cmd+V（Ctrl+V）を「マークダウンから貼り付け」に差し替える
+  function handlePasteShortcut(event) {
+    if (!enabled.markdownPasteShortcut) {
+      return;
+    }
+    if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.altKey) {
+      return;
+    }
+    if (event.key !== 'v' && event.key !== 'V') {
+      return;
+    }
+    // 項目が見つからない場合（未対応のUI言語、Markdown設定が無効、未レンダリング）は
+    // preventDefaultせず通常の貼り付けにフォールバックする
+    const item = findMenuItem(isMarkdownPasteLabel);
+    if (!item) {
+      return;
+    }
     event.preventDefault();
     event.stopImmediatePropagation();
-
-    const win = event.target.ownerDocument.defaultView;
-    const dt = new win.DataTransfer();
-    dt.setData('text/html', buildAnchorHtml(link));
-    dt.setData('text/plain', link.title);
-    const synthetic = new win.ClipboardEvent('paste', {
-      clipboardData: dt,
-      bubbles: true,
-      cancelable: true,
-    });
-    synthetic.__gwsTweaksSynthetic = true;
-    event.target.dispatchEvent(synthetic);
+    activateEditMenuItem(item);
   }
 
   const boundDocs = new WeakSet();
@@ -76,11 +119,11 @@
       return true;
     }
     boundDocs.add(doc);
-    doc.addEventListener('paste', handlePaste, true);
+    doc.addEventListener('keydown', handlePasteShortcut, true);
     return true;
   }
 
-  // --- メニューバー下の共有バー（パンくず表示＋アクションボタン） ---
+  // --- メニューバー下のバー（パンくず表示） ---
 
   const BAR_ID = 'gws-tweaks-bar';
   const BREADCRUMB_ID = 'gws-tweaks-breadcrumb';

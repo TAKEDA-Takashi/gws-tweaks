@@ -4,10 +4,10 @@
 
   const FEATURES = [
     {
-      id: 'markdownLinkPaste',
-      name: 'Markdownリンクの貼り付け変換',
+      id: 'markdownPasteShortcut',
+      name: 'Cmd+Vでマークダウンから貼り付け',
       description:
-        '[タイトル](URL) 形式のテキストを貼り付けたとき、タイトルの長さに関係なくリンクとして挿入します（ドキュメントのみ）。',
+        'Cmd+V（Ctrl+V）の貼り付けを「マークダウンから貼り付け」に変更します。編集メニューや右クリックからの貼り付けは通常のままです（ドキュメントのみ）。',
       defaultEnabled: true,
     },
     {
