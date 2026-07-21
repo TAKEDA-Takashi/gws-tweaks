@@ -1,11 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
 let buildDocSetupRequests;
+let buildIndentRequests;
 let bodyEndIndex;
 
 beforeAll(async () => {
   await import('../src/lib/doc-setup.js');
-  ({ buildDocSetupRequests, bodyEndIndex } = globalThis.GWSTweaks);
+  ({ buildDocSetupRequests, buildIndentRequests, bodyEndIndex } = globalThis.GWSTweaks);
 });
 
 describe('bodyEndIndex', () => {
@@ -127,5 +128,102 @@ describe('buildDocSetupRequests', () => {
     const requests = buildDocSetupRequests(allSettings, 1);
     expect(requests).toHaveLength(1);
     expect(requests[0].updateDocumentStyle).toBeDefined();
+  });
+});
+
+describe('buildIndentRequests', () => {
+  it('箇条書き段落をネストレベルに応じたインデントにする', () => {
+    const content = [
+      { startIndex: 1, endIndex: 10, paragraph: { bullet: { listId: 'kix.a' } } },
+      { startIndex: 10, endIndex: 20, paragraph: { bullet: { listId: 'kix.a', nestingLevel: 1 } } },
+    ];
+    expect(buildIndentRequests(content, 18)).toEqual([
+      {
+        updateParagraphStyle: {
+          range: { startIndex: 1, endIndex: 10 },
+          paragraphStyle: {
+            indentStart: { magnitude: 18, unit: 'PT' },
+            indentFirstLine: { magnitude: 0, unit: 'PT' },
+          },
+          fields: 'indentStart,indentFirstLine',
+        },
+      },
+      {
+        updateParagraphStyle: {
+          range: { startIndex: 10, endIndex: 20 },
+          paragraphStyle: {
+            indentStart: { magnitude: 36, unit: 'PT' },
+            indentFirstLine: { magnitude: 18, unit: 'PT' },
+          },
+          fields: 'indentStart,indentFirstLine',
+        },
+      },
+    ]);
+  });
+
+  it('36ptを指定するとDocsの既定と同じ配置になる（記号と本文の間隔は18pt）', () => {
+    const content = [{ startIndex: 1, endIndex: 10, paragraph: { bullet: { listId: 'kix.a' } } }];
+    const [request] = buildIndentRequests(content, 36);
+    expect(request.updateParagraphStyle.paragraphStyle).toEqual({
+      indentStart: { magnitude: 36, unit: 'PT' },
+      indentFirstLine: { magnitude: 18, unit: 'PT' },
+    });
+  });
+
+  it('インデント済みの通常段落は36pt基準の比例配分で変更する', () => {
+    const content = [
+      {
+        startIndex: 1,
+        endIndex: 10,
+        paragraph: { paragraphStyle: { indentStart: { magnitude: 72, unit: 'PT' } } },
+      },
+    ];
+    expect(buildIndentRequests(content, 18)).toEqual([
+      {
+        updateParagraphStyle: {
+          range: { startIndex: 1, endIndex: 10 },
+          paragraphStyle: { indentStart: { magnitude: 36, unit: 'PT' } },
+          fields: 'indentStart',
+        },
+      },
+    ]);
+  });
+
+  it('インデントのない通常段落・段落以外の要素は対象外', () => {
+    const content = [
+      { startIndex: 1, endIndex: 10, paragraph: {} },
+      { startIndex: 10, endIndex: 20, paragraph: { paragraphStyle: {} } },
+      { startIndex: 20, endIndex: 21, sectionBreak: {} },
+    ];
+    expect(buildIndentRequests(content, 18)).toEqual([]);
+  });
+
+  it('連続する同じインデントの段落は1つのリクエストにまとめる', () => {
+    const content = [
+      { startIndex: 1, endIndex: 10, paragraph: { bullet: { listId: 'kix.a' } } },
+      { startIndex: 10, endIndex: 20, paragraph: { bullet: { listId: 'kix.a' } } },
+      { startIndex: 20, endIndex: 30, paragraph: { bullet: { listId: 'kix.a', nestingLevel: 1 } } },
+    ];
+    const requests = buildIndentRequests(content, 18);
+    expect(requests).toHaveLength(2);
+    expect(requests[0].updateParagraphStyle.range).toEqual({ startIndex: 1, endIndex: 20 });
+    expect(requests[1].updateParagraphStyle.range).toEqual({ startIndex: 20, endIndex: 30 });
+  });
+
+  it('幅の指定を18pt未満にした場合は記号と本文の間隔も幅に合わせる', () => {
+    const content = [
+      { startIndex: 1, endIndex: 10, paragraph: { bullet: { listId: 'kix.a', nestingLevel: 1 } } },
+    ];
+    const [request] = buildIndentRequests(content, 10);
+    expect(request.updateParagraphStyle.paragraphStyle).toEqual({
+      indentStart: { magnitude: 20, unit: 'PT' },
+      indentFirstLine: { magnitude: 10, unit: 'PT' },
+    });
+  });
+
+  it('幅が未設定・contentがない場合は空配列を返す', () => {
+    const content = [{ startIndex: 1, endIndex: 10, paragraph: { bullet: { listId: 'kix.a' } } }];
+    expect(buildIndentRequests(content, null)).toEqual([]);
+    expect(buildIndentRequests(null, 18)).toEqual([]);
   });
 });
