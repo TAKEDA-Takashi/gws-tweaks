@@ -1,6 +1,6 @@
 ---
 title: GWS Tweaks プライバシーポリシー
-permalink: /
+permalink: /privacy/
 ---
 
 # GWS Tweaks プライバシーポリシー
