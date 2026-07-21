@@ -5,8 +5,13 @@ importScripts('/src/lib/breadcrumb.js', '/src/lib/doc-setup.js');
 (function () {
   'use strict';
 
-  const { buildBreadcrumb, loadDocSetupSettings, bodyEndIndex, buildDocSetupRequests } =
-    globalThis.GWSTweaks;
+  const {
+    buildBreadcrumb,
+    loadDocSetupSettings,
+    bodyEndIndex,
+    buildDocSetupRequests,
+    buildIndentRequests,
+  } = globalThis.GWSTweaks;
 
   const CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -95,7 +100,10 @@ importScripts('/src/lib/breadcrumb.js', '/src/lib/doc-setup.js');
     }
 
     const baseUrl = 'https://docs.googleapis.com/v1/documents/' + encodeURIComponent(docId);
-    const getRes = await docsFetch(baseUrl + '?fields=body.content(endIndex)');
+    // bulletはネストレベル0でnestingLevelが省略されるためオブジェクト全体を要求する
+    const getRes = await docsFetch(
+      baseUrl + '?fields=body.content(startIndex,endIndex,paragraph(bullet,paragraphStyle(indentStart)))'
+    );
     if (getRes.status === 403) {
       await chrome.identity.removeCachedAuthToken({ token });
       return { status: 'auth_required' };
@@ -105,7 +113,10 @@ importScripts('/src/lib/breadcrumb.js', '/src/lib/doc-setup.js');
     }
     const doc = await getRes.json();
 
-    const requests = buildDocSetupRequests(settings, bodyEndIndex(doc));
+    const requests = [
+      ...buildDocSetupRequests(settings, bodyEndIndex(doc)),
+      ...buildIndentRequests(doc.body && doc.body.content, settings.indentUnit),
+    ];
     if (requests.length === 0) {
       return { status: 'ok', applied: 0 };
     }

@@ -47,11 +47,13 @@
     const fontFamily = document.getElementById('doc-setup-font-family');
     const fontSize = document.getElementById('doc-setup-font-size');
     const lineSpacing = document.getElementById('doc-setup-line-spacing');
+    const indentUnit = document.getElementById('doc-setup-indent-unit');
     const pageless = document.getElementById('doc-setup-pageless');
 
     fontFamily.value = settings.fontFamily;
     fontSize.value = settings.fontSize == null ? '' : String(settings.fontSize);
     lineSpacing.value = settings.lineSpacing == null ? '' : String(settings.lineSpacing);
+    indentUnit.value = settings.indentUnit == null ? '' : String(settings.indentUnit);
     pageless.checked = settings.pageless;
 
     async function save() {
@@ -59,11 +61,12 @@
         fontFamily: fontFamily.value.trim(),
         fontSize: fontSize.value === '' ? null : Number(fontSize.value),
         lineSpacing: lineSpacing.value === '' ? null : Number(lineSpacing.value),
+        indentUnit: indentUnit.value === '' ? null : Number(indentUnit.value),
         pageless: pageless.checked,
       });
     }
 
-    for (const el of [fontFamily, fontSize, lineSpacing, pageless]) {
+    for (const el of [fontFamily, fontSize, lineSpacing, indentUnit, pageless]) {
       el.addEventListener('change', save);
     }
   }
