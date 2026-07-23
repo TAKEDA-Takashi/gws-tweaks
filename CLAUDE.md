@@ -58,5 +58,5 @@ Docsの編集メニュー項目（`.goog-menuitem`）は、**信頼されたユ�
 
 - `docs-texteventtarget-iframe` 内のkeydownをキャプチャ段階で傍受してCmd+Vを検出し、`preventDefault` + `stopImmediatePropagation` してから「マークダウンから貼り付け」項目を起動する。編集メニュー・右クリックメニューからの貼り付けは変更しない
 - 項目はテキストラベルで特定する（IDは `:7f` のような動的生成のため不可）。判定ロジックは `src/lib/markdown-paste.js`。対応ラベルは日本語「マークダウンから貼り付け」と英語「Paste from Markdown」
-- **項目が見つからないときはpreventDefaultせず通常の貼り付けにフォールバック**する（未対応のUI言語、ツール→設定でMarkdownが無効、メニュー未レンダリングの場合にCmd+Vを壊さないため）
+- **項目が見つからない・無効（`aria-disabled="true"`）のときはpreventDefaultせず通常の貼り付けにフォールバック**する（未対応のUI言語、メニュー未レンダリングの場合にCmd+Vを壊さないため）。特にツール→設定で「Markdownを有効にする」がOFFの場合、**項目は存在するが常に無効**という状態になる（Windowsユーザーの実報告で確認）。無効チェックをpreventDefaultより先に行わないと、この状態でCtrl+Vが完全に無反応になる
 - Docsのメニュー経由の貼り付けはページのclipboard API（`navigator.clipboard`）を使わない（permissionが `prompt` のままでも動作する。Docsオフライン拡張連携の内部経路とみられる）

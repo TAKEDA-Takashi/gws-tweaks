@@ -92,10 +92,15 @@
     if (event.key !== 'v' && event.key !== 'V') {
       return;
     }
-    // 項目が見つからない場合（未対応のUI言語、Markdown設定が無効、未レンダリング）は
-    // preventDefaultせず通常の貼り付けにフォールバックする
+    // 起動できる見込みがない場合はpreventDefaultせず通常の貼り付けにフォールバックする。
+    // 項目なし: 未対応のUI言語、Markdown設定が無効、未レンダリング。
+    // 項目が無効: Windowsでは実際にメニューを開くまでaria-disabled="true"のままのことがあり、
+    // ここで横取りするとCtrl+Vが何もしなくなる
     const item = findMenuItem(isMarkdownPasteLabel);
-    if (!item) {
+    if (!item || item.getAttribute('aria-disabled') === 'true') {
+      return;
+    }
+    if (!document.getElementById('docs-edit-menu')) {
       return;
     }
     event.preventDefault();
