@@ -67,6 +67,19 @@ section > .description {
   margin-top: 2px;
 }
 
+#feature-list select {
+  display: block;
+  margin-top: 8px;
+  max-width: 280px;
+  padding: 6px 8px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 13px;
+  background: inherit;
+  color: inherit;
+}
+
 .field-list {
   display: grid;
   gap: 14px;
@@ -118,7 +131,8 @@ section > .description {
 
   .field input[type="text"],
   .field input[type="number"],
-  .field select {
+  .field select,
+  #feature-list select {
     border-color: #5f6368;
   }
 }

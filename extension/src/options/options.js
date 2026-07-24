@@ -16,15 +16,6 @@
     for (const feature of FEATURES) {
       const item = document.createElement('li');
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.id = feature.id;
-      checkbox.checked = settings[feature.id];
-      checkbox.addEventListener('change', async () => {
-        settings[feature.id] = checkbox.checked;
-        await saveFeatureSettings(settings);
-      });
-
       const label = document.createElement('label');
       label.htmlFor = feature.id;
 
@@ -37,7 +28,35 @@
       description.textContent = feature.description;
 
       label.append(name, description);
-      item.append(checkbox, label);
+
+      if (feature.options) {
+        // 選択式の機能はチェックボックスの代わりにプルダウンを説明の下に置く
+        const select = document.createElement('select');
+        select.id = feature.id;
+        for (const option of feature.options) {
+          const el = document.createElement('option');
+          el.value = option.value;
+          el.textContent = option.label;
+          select.append(el);
+        }
+        select.value = settings[feature.id];
+        select.addEventListener('change', async () => {
+          settings[feature.id] = select.value;
+          await saveFeatureSettings(settings);
+        });
+        label.append(select);
+        item.append(label);
+      } else {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = feature.id;
+        checkbox.checked = settings[feature.id];
+        checkbox.addEventListener('change', async () => {
+          settings[feature.id] = checkbox.checked;
+          await saveFeatureSettings(settings);
+        });
+        item.append(checkbox, label);
+      }
       list.append(item);
     }
   }
