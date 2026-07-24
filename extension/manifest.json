@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GWS Tweaks",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Google Workspace にちょっとした便利機能を追加します。",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAklf35hebZv6cd53ZXLxAn4pgzdiM+ybfPDePM9Vu/s8Yux0zqjape1JMEdXonn0s52Qf76gkRjrCgvgt8NgcI6ajIbCVLMo4jtXLAKgpUDlh6lb86xHDGZvQYRDLGR9eLaNyjEOYiSsHmD4l2AthSgfrP9DtatP1d+swt84VSKJ4Z38fVLPYyC2BuhtEUPELol99LG83Z4hI+W40qWra/5eZ9FBfyjO9p3lc0sDfctGXBPAXyl3Qy5VvKKNOOYPmbnEivbff62QYC8jf3Bq7yCYff9GOSxcB29dpHFxs2xR4qTJya7K0d5XJEkWIuCyPyQQYnCxofiZ6qXy4K84ZAQIDAQAB",
   "icons": {
