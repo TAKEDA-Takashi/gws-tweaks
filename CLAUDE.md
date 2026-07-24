@@ -56,7 +56,12 @@ npm test -- --run test/markdown-paste.test.js  # 単一ファイルのテスト
 
 Docsの編集メニュー項目（`.goog-menuitem`）は、**信頼されたユーザー操作（実キー入力・実クリック）のハンドラ内からであれば**合成マウスイベントで起動できる（信頼されたイベントの外から合成イベントだけで起動しようとしても無視される）。また、項目の起動にはメニューが開いた状態である必要があるため、メニューボタンへ合成mousedown/mouseupを送って開いてから項目を起動する。同一タスク内で完結させれば描画が発生せず、メニューは画面にちらつかない（実機確認済み）。
 
-- `docs-texteventtarget-iframe` 内のkeydownをキャプチャ段階で傍受してCmd+Vを検出し、`preventDefault` + `stopImmediatePropagation` してから「マークダウンから貼り付け」項目を起動する。編集メニュー・右クリックメニューからの貼り付けは変更しない
-- 項目はテキストラベルで特定する（IDは `:7f` のような動的生成のため不可）。判定ロジックは `src/lib/markdown-paste.js`。対応ラベルは日本語「マークダウンから貼り付け」と英語「Paste from Markdown」
+- 設定は3モード: `auto`（デフォルト。貼り付け内容がマークダウンらしいときだけ差し替え）・`always`（常に差し替え）・`off`。旧バージョンのboolean保存値は `false`→`off`、それ以外→デフォルト（`auto`）に読み替える（`src/lib/features.js`）
+- 傍受は `docs-texteventtarget-iframe` 内の**pasteイベント**（キャプチャ段階）で行う。pasteイベントは実キー入力由来ならtrustedで、`event.clipboardData` から text/plain を**同期的に**読める（権限不要）。内容を判定してから `preventDefault` + `stopImmediatePropagation` して「マークダウンから貼り付け」項目を起動する。pasteハンドラ内も信頼されたコンテキストとして扱われ、メニュー起動できる（実機確認済み）
+- keydownでは `preventDefault` せず、Cmd+Vの時刻を記録するだけ。pasteハンドラ側で「直近300ms以内にCmd+Vがあったpaste」だけを対象にすることで、編集メニュー・右クリックメニューからの貼り付けを変更しない
+- **メニュー起動による内部貼り付け自体も同じiframeにtrustedなpasteイベントとして届く**（`activateEditMenuItem` 中に同期で発火する。実機確認済み）。再傍受による無限ループを防ぐため、起動前にガード時刻（1.5秒）を立てて内部pasteを素通しする。時刻で失効させるので、起動が失敗してpasteが届かなくても以後のCmd+Vは壊れない
+- マークダウン判定は `src/lib/markdown-paste.js` の `isLikelyMarkdown`。シグナル種別ごとの加算スコア（強2・弱1）で合計2以上ならマークダウン。「1. 会議室の予約」「- 牛乳を買う」のような1行だけの弱いシグナルでは発動しない
+- テキストのないクリップボード（画像など）は通常の貼り付けに任せる
+- 項目はテキストラベルで特定する（IDは `:7f` のような動的生成のため不可）。ラベル判定は `src/lib/markdown-paste.js` の `isMarkdownPasteLabel`。対応ラベルは日本語「マークダウンから貼り付け」と英語「Paste from Markdown」
 - **項目が見つからない・無効（`aria-disabled="true"`）のときはpreventDefaultせず通常の貼り付けにフォールバック**する（未対応のUI言語、メニュー未レンダリングの場合にCmd+Vを壊さないため）。特にツール→設定で「Markdownを有効にする」がOFFの場合、**項目は存在するが常に無効**という状態になる（Windowsユーザーの実報告で確認）。無効チェックをpreventDefaultより先に行わないと、この状態でCtrl+Vが完全に無反応になる
-- Docsのメニュー経由の貼り付けはページのclipboard API（`navigator.clipboard`）を使わない（permissionが `prompt` のままでも動作する。Docsオフライン拡張連携の内部経路とみられる）
+- Docsのメニュー経由の貼り付けはページのclipboard API（`navigator.clipboard`）を使わない（permissionが `prompt` のままでも動作する。上記の内部pasteイベントを含め、Docsオフライン拡張連携の内部経路とみられる）
