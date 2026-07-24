@@ -7,6 +7,7 @@
 
   const {
     isMarkdownPasteLabel,
+    isLikelyMarkdown,
     loadFeatureSettings,
     extractDocId,
     folderUrl,
@@ -33,8 +34,12 @@
   //
   // Docsの編集メニュー項目は、合成マウスイベントでも「信頼された
   // ユーザー操作（実際のキー入力・クリック）のハンドラ内」からであれば起動できる。
-  // これを利用して、Cmd+Vのハンドラ内から「マークダウンから貼り付け」を起動する。
-  // 編集メニュー・右クリックメニューからの貼り付けは変更しない。
+  // Cmd+V由来のpasteイベントをキャプチャ段階で傍受し、clipboardDataの内容を
+  // 見てから「マークダウンから貼り付け」を起動する（autoモードはマークダウン
+  // らしいときのみ、alwaysモードは常に）。pasteイベントのハンドラ内も
+  // 信頼されたコンテキストとして扱われ、メニュー起動できる（実機確認済み）。
+  // 編集メニュー・右クリックメニューからの貼り付けは変更しない
+  // （直前にCmd+Vのkeydownがあったpasteだけを対象にする）。
 
   function fireMouse(el, type, x, y) {
     el.dispatchEvent(
@@ -81,15 +86,43 @@
     fireMouse(item, 'click', cx, cy);
   }
 
-  // Cmd+V（Ctrl+V）を「マークダウンから貼り付け」に差し替える
-  function handlePasteShortcut(event) {
-    if (!enabled.markdownPasteShortcut) {
-      return;
-    }
+  // 直近のCmd+V（Ctrl+V）keydownの時刻。pasteイベントがキーボード由来かの判定に使う
+  let pasteShortcutAt = -Infinity;
+  // メニュー起動による内部貼り付け（同じiframeにpasteイベントとして届く）を
+  // 再傍受しないためのガード。時刻で失効させ、起動失敗時も以後のCmd+Vを壊さない
+  let internalPasteExpectedUntil = 0;
+
+  function markPasteShortcut(event) {
     if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.altKey) {
       return;
     }
     if (event.key !== 'v' && event.key !== 'V') {
+      return;
+    }
+    pasteShortcutAt = performance.now();
+  }
+
+  // Cmd+V由来のpasteを「マークダウンから貼り付け」に差し替える
+  function handlePaste(event) {
+    // 自分がメニュー起動した内部貼り付けは素通しする（activateEditMenuItem中に同期で届く）
+    if (performance.now() < internalPasteExpectedUntil) {
+      internalPasteExpectedUntil = 0;
+      return;
+    }
+    const mode = enabled.markdownPasteShortcut;
+    if (mode !== 'always' && mode !== 'auto') {
+      return;
+    }
+    // Cmd+V由来のpasteのみ対象。メニュー・右クリックからの貼り付けは変更しない
+    if (performance.now() - pasteShortcutAt > 300) {
+      return;
+    }
+    // テキストなし（画像など）は通常の貼り付けに任せる
+    const text = event.clipboardData ? event.clipboardData.getData('text/plain') : '';
+    if (!text) {
+      return;
+    }
+    if (mode === 'auto' && !isLikelyMarkdown(text)) {
       return;
     }
     // 起動できる見込みがない場合はpreventDefaultせず通常の貼り付けにフォールバックする。
@@ -105,6 +138,7 @@
     }
     event.preventDefault();
     event.stopImmediatePropagation();
+    internalPasteExpectedUntil = performance.now() + 1500;
     activateEditMenuItem(item);
   }
 
@@ -124,7 +158,8 @@
       return true;
     }
     boundDocs.add(doc);
-    doc.addEventListener('keydown', handlePasteShortcut, true);
+    doc.addEventListener('keydown', markPasteShortcut, true);
+    doc.addEventListener('paste', handlePaste, true);
     return true;
   }
 
