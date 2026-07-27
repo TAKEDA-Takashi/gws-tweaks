@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> グローバル規約（日本語・品質ゲート・TDD・YAGNI 等）は `~/.claude/CLAUDE.md` にある。ここには **本プロジェクト固有** の情報だけを書く。
+
 ## 概要
 
 Google Workspace（ドキュメント、Gmail、カレンダーなど）に便利機能を追加するChrome拡張（Manifest V3）。content scriptはドキュメント・スプレッドシート・スライドで共通に動作し（3アプリのヘッダーDOMは同一構造）、Docs固有機能は `IS_DOCS` でガードする。アプリ固有機能が増えて見通しが悪くなったら `extension/src/content/` をアプリ別に再編する方針。ビルドステップはなく、`extension/` ディレクトリをそのまま「パッケージ化されていない拡張機能」としてChromeに読み込む（リポジトリのルートは不可。`_config.yml` など `_` 始まりのファイルがあるとChromeが拒否するため、拡張本体はルートから分離している）。lint・typecheckは未設定で、品質チェックはテストのみ。
