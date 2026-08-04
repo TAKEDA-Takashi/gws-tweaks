@@ -1,5 +1,8 @@
 # GitHub Pagesの設定。サイトとして公開するのはプライバシーポリシーのみ
 title: GWS Tweaks
+# 空にしないとjekyll-seo-tagがGitHubリポジトリの説明文を<title>のタグラインに使い、
+# OAuth検証のブランドチェック（同意画面のアプリ名とページタイトルの一致）に落ちる
+description: ""
 exclude:
   - README.md
   - CLAUDE.md
