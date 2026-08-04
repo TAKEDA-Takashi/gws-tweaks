@@ -163,10 +163,10 @@ than Google's own APIs; the developer operates no server at all.
 
 ## 返信メールのドラフト（英文）
 
-ドメイン移行・動画の撮り直し・Console更新がすべて終わってから送る。`xx` の箇所は実際の値に置き換える。
+**送信タイミング**: Cloud Consoleのブランドチェック（「OAuth同意画面のアプリ名とホームページのアプリ名が一致していません」）が解消されてから送る。原因だったページタイトルのタグライン混入は2026-08-04に修正済み（`_config.yml` の `description: ""`）で、Console側の再判定待ち。下記はそのまま送信できる完成版。
 
 ```
-Subject: Re: OAuth verification – GWS Tweaks (Project: xxxx)
+Subject: Re: OAuth verification – GWS Tweaks (Project: chrome-extensions-502707)
 
 Hello,
 
@@ -200,7 +200,7 @@ Thank you for the detailed review. I have addressed every item below.
    application has no server component.
 
 4. DEMONSTRATION VIDEO
-   A new video (unlisted, 3 min 22 s): https://youtu.be/xxxx
+   A new video (unlisted, 3 min 22 s): https://youtu.be/xwUdd8D7m7E
    It shows the Chrome Web Store listing and the installed extension ID,
    the full OAuth consent screen with both requested scopes legible, and
    then each scope's user-facing feature end to end.
@@ -269,5 +269,5 @@ Thank you for the detailed review. I have addressed every item below.
 Please let me know if anything further is needed.
 
 Best regards,
-xxxx
+Takashi Takeda
 ```
