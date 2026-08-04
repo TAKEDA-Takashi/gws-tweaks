@@ -1,0 +1,263 @@
+# OAuth検証（Google Third-Party Data Safety Team）対応
+
+2026-08-03に受領した審査結果への対応をまとめる。Cloud Consoleに貼り付ける英文と、返信メールのドラフトを含む。
+
+## 指摘事項と対応状況
+
+| # | 指摘 | 対応 | 状態 |
+|---|---|---|---|
+| 1 | ホームページ・プライバシーポリシーが第三者ホスティング（github.io）にある | 独自ドメインを取得しGitHub Pagesに割り当て、Search Consoleでドメイン所有権を確認 | 要作業（下記「ドメイン移行手順」） |
+| 2 | デモ動画が機能を十分に示していない | 同意画面のスコープ表示＋全機能の実演を撮り直し | 要作業（下記「デモ動画の台本」） |
+| 3 | プライバシーポリシーに機微データの保護策の記載がない | `PRIVACY.md` に「データの保護」を追加 | 完了 |
+| 4 | プライバシーポリシーに保持・削除の記載がない | `PRIVACY.md` に「データの保持と削除」を追加 | 完了 |
+| 5 | スコープの正当化が不十分 | 下記の英文をCloud Consoleに貼り付け | 文面作成済み |
+| 6 | スコープ不一致（Console と実際のリクエストが一致しているか） | Console の Data Access 画面を `manifest.json` の2スコープと突き合わせ | 要確認 |
+| 7 | テスト用認証情報・操作手順の提供 | ログイン不要のためストアからのインストール手順を返信に記載 | 文面作成済み |
+
+## ドメイン移行手順（指摘1）
+
+github.io は Public Suffix List に載っているため、Search Consoleで「ドメインプロパティ」として所有権を確認できない（URLプレフィックスのみ）。前回の再審査請求でこの事情を説明したが認められず、今回の返答で明示的にドメイン移行を指示された。**`matsutake.dev` を取得済み（2026-08-04）。サイトは `gws-tweaks.matsutake.dev` に置く**（apexは将来の別用途のために空けておく）。
+
+- 新ホームページ: `https://gws-tweaks.matsutake.dev/`
+- 新プライバシーポリシー: `https://gws-tweaks.matsutake.dev/privacy/`
+- `.dev` TLDはHSTSプリロード済みのため全ページ強制HTTPS（GitHub Pagesの「Enforce HTTPS」と整合）
+
+手順（リポジトリ側の 1・4・8 は対応済み）:
+
+1. ~~`CNAME` ファイルをリポジトリルートに作成~~（済: 内容 `gws-tweaks.matsutake.dev`）
+2. **DNSレコードを設定** — `gws-tweaks.matsutake.dev` の CNAMEレコード → `takeda-takashi.github.io`。Cloudflare DNSを使う場合はプロキシ（オレンジ雲）をOFFにする（GitHub Pagesの証明書発行が失敗するため）
+3. **GitHub Pagesの設定確認** — リポジトリの Settings → Pages → Custom domain に `gws-tweaks.matsutake.dev` が表示されていることを確認（`CNAME` ファイルのpushで自動反映される。されない場合は手で入力）。DNS反映後に「Enforce HTTPS」をON（証明書発行に数分〜1時間程度かかる）
+4. ~~`index.md` のプライバシーポリシーへのリンクを `/privacy/` に修正~~（済。カスタムドメインではサイトのルートが `/` になるため）
+5. **Search Consoleでドメインプロパティを追加** — プロパティ名 `matsutake.dev`（サブドメインを含む全体をカバー）。DNSのTXTレコードで所有権を確認する
+6. **Cloud Consoleを更新** — OAuth同意画面（ブランディング）の「アプリケーションのホームページ」「プライバシーポリシー」URLを上記の新URLに差し替え、「承認済みドメイン」に `matsutake.dev` を追加する
+7. **Chrome ウェブストアの掲載情報**のプライバシーポリシーURLも差し替える
+8. ~~`docs/store-publishing.md` のURLを更新~~（済。`README.md` にはURL記載なし）
+
+> - 旧URL `https://takeda-takashi.github.io/gws-tweaks/` はGitHub Pagesが新ドメインへ自動リダイレクトするため、Store掲載中の旧URLも移行中に壊れない
+> - 既存の `takeda-takashi.github.io`（ユーザーサイト）と `googlee3740b880df84495.html` は、新ドメインでの検証が完了するまで削除しないこと
+> - 承認済みドメインの自動チェックは、Search Consoleのドメインプロパティ確認が済んでいれば通る見込み。通れば再審査請求（手動確認）は不要
+
+## スコープ不一致の確認（指摘6）
+
+Cloud Console → Data Access（データアクセス）画面に登録されているスコープが、`extension/manifest.json` の `oauth2.scopes` と**文字列レベルで完全一致**しているか確認する。現在リクエストしているのは次の2つのみ。
+
+```
+https://www.googleapis.com/auth/drive.metadata.readonly
+https://www.googleapis.com/auth/documents
+```
+
+Console側に `userinfo.email` / `openid` などが残っている場合は削除する（同意画面に表示されるがコードが要求していないスコープは「不一致」と判定される）。逆にConsoleに登録されていないスコープをコードが要求している場合も不一致になる。
+
+## スコープの正当化（指摘5・Cloud Consoleに貼り付ける英文）
+
+Googleの求めているのは「バックエンドの処理」ではなく「そのスコープを使うユーザー向け機能の最大範囲」の説明。以下をそのまま各スコープの justification 欄に入力する。
+
+### `https://www.googleapis.com/auth/drive.metadata.readonly`
+
+```
+FEATURE: "Folder path breadcrumb"
+
+GWS Tweaks displays the Google Drive folder path of the file the user
+currently has open, as a clickable breadcrumb inside the Google Docs /
+Sheets / Slides editor. The native editor UI does not show where the open
+file is stored, so users have to leave the document and search Drive to
+find out.
+
+USER-FACING FLOW (shown in the demo video at 00:xx):
+1. The user opens a file on docs.google.com.
+2. The extension's content script inserts a 24px bar directly under the
+   menu bar.
+3. The service worker calls
+   GET drive/v3/files/{fileId}?fields=name,parents for the open file, then
+   repeats that call for each returned parent ID until it reaches My Drive
+   or a shared drive root.
+4. The folder names are rendered as a breadcrumb, e.g.
+   "My Drive > Projects > 2026". Clicking a crumb opens that folder in
+   Google Drive in a new tab.
+
+MAXIMUM EXTENT OF ACCESS: the extension reads only the "name" and
+"parents" fields, only for the single file the user has open and for that
+file's ancestor folders. It never lists, searches or enumerates the user's
+Drive, never reads file content, and never writes anything.
+
+WHY A NARROWER SCOPE IS NOT SUFFICIENT:
+- drive.file grants access only to files created by the app or explicitly
+  chosen by the user through the Google Picker. The breadcrumb must appear
+  automatically for whichever file the user already opened in the Docs UI,
+  and it must resolve that file's ancestor folders, which the user never
+  selects. A Picker step for every document and every folder in the chain
+  would remove the entire benefit of the feature.
+- drive.metadata.readonly is the narrowest read-only scope that returns the
+  "parents" field. drive.appdata does not expose it. drive.readonly and
+  drive are strictly broader because they also grant access to file
+  content.
+
+DATA HANDLING: folder names are rendered in the page and cached in
+chrome.storage.session (in-memory, 5 minutes, cleared when the browser
+closes). Nothing is sent to any server other than Google's own APIs; the
+developer operates no server at all.
+```
+
+### `https://www.googleapis.com/auth/documents`
+
+```
+FEATURE: "One-click document defaults"
+
+GWS Tweaks adds a magic-wand button next to the document title in Google
+Docs that applies the user's preferred document defaults (font family,
+font size, line spacing, list indent width, and pageless mode) in a single
+click. Users who create many documents otherwise repeat the same five
+manual formatting steps every time.
+
+USER-FACING FLOW (shown in the demo video at 00:xx):
+1. The user sets their preferred defaults on the extension's options page.
+2. The user opens a Google Doc and clicks the magic-wand icon in the title
+   bar.
+3. The extension calls documents.get to read structural information: the
+   end index of the body, and for each paragraph its bullet nesting level
+   and current indent values.
+4. It then calls documents.batchUpdate with updateDocumentStyle
+   (documentFormat.documentMode = PAGELESS), updateTextStyle (font family
+   and size) and updateParagraphStyle (line spacing, indentStart,
+   indentFirstLine).
+5. The icon turns into a green check mark to confirm the result.
+
+MAXIMUM EXTENT OF ACCESS: only the document the user is currently viewing,
+and only in response to an explicit click on the button. The extension
+reads structural metadata (indices, nesting levels, indent values); it does
+not read, transmit or store the text of the document. It writes only
+formatting properties, and never creates, deletes, shares or lists
+documents.
+
+WHY A NARROWER SCOPE IS NOT SUFFICIENT: the Google Docs API provides no
+formatting-only scope. documents.readonly cannot call batchUpdate, which is
+required to apply the formatting. drive.file would limit access to files
+created by the app or chosen through the Google Picker, which cannot serve
+a button that acts on the document the user already has open in the Docs
+UI.
+
+DATA HANDLING: documents.get responses are processed in memory in the
+extension's service worker and discarded once the batchUpdate request has
+been built. Nothing is persisted and nothing is sent to any server other
+than Google's own APIs; the developer operates no server at all.
+```
+
+## デモ動画の台本（指摘2）
+
+前回の動画（64秒）は短く、同意画面のスコープ表示と各機能の対応が不十分と判断された。目安3〜4分、画面録画＋英語字幕、YouTubeの限定公開でアップロードする。**録画前にGoogleアカウント設定から既存のアクセス権を取り消しておく**（同意画面を最初から見せるため）。
+
+| 場面 | 見せるもの | 目的 |
+|---|---|---|
+| 1 | Chrome ウェブストアの掲載ページ（URLバーに拡張ID `clfdceeaohplokfalnmcdjibngfnijok` が見える状態） | アプリの同一性 |
+| 2 | `chrome://extensions` でGWS Tweaksがインストール済み・IDが一致していること | 同上 |
+| 3 | 拡張機能の設定画面（3機能のON/OFF、書式のデフォルト設定） | 機能の全体像 |
+| 4 | Googleドキュメントを開く → 認証を促すUI → **OAuth同意画面を全画面で表示し、2つの権限テキストが両方読めるようスクロール**。アプリ名も映す。「許可」を押す | **最重要**。要求スコープとConsole設定の一致を示す |
+| 5 | パンくずが表示される → フォルダー名をクリック → Google Driveの当該フォルダーが開く | `drive.metadata.readonly` の実演 |
+| 6 | 魔法の杖アイコンをクリック → フォント・サイズ・行間・インデント・ページ分けなしが一括適用される様子（適用前後が分かるように） | `documents` の実演 |
+| 7 | Cmd+Vでマークダウン貼り付け（スコープ不要の機能） | 機能の網羅 |
+| 8 | `myaccount.google.com/permissions` でアクセス権を取り消せることを表示 | 削除・取り消し手段の提示 |
+
+各場面の冒頭に英語のキャプション（例: `Scope demonstrated: drive.metadata.readonly`）を入れると、レビュアーがスコープと機能の対応を追いやすい。
+
+## 返信メールのドラフト（英文）
+
+ドメイン移行・動画の撮り直し・Console更新がすべて終わってから送る。`xx` の箇所は実際の値に置き換える。
+
+```
+Subject: Re: OAuth verification – GWS Tweaks (Project: xxxx)
+
+Hello,
+
+Thank you for the detailed review. I have addressed every item below.
+
+1. HOMEPAGE AND PRIVACY POLICY ON AN OWNED DOMAIN
+   Both pages have been moved to matsutake.dev, a domain I own and have
+   verified in Google Search Console (domain property, DNS TXT record):
+   - Homepage:       https://gws-tweaks.matsutake.dev/
+   - Privacy policy: https://gws-tweaks.matsutake.dev/privacy/
+   The Cloud Console OAuth consent screen has been updated with these URLs
+   and matsutake.dev has been added to the authorized domains list.
+
+2. PRIVACY POLICY – DATA PROTECTION MECHANISMS
+   The privacy policy now contains a "Data protection" section describing:
+   TLS for all API traffic; OAuth access tokens handled by Chrome's
+   chrome.identity API and never written to disk by the extension;
+   least-privilege scopes; all processing performed on the user's device
+   with no developer-operated server; no remote code execution; Chrome
+   extension sandbox isolation; and publicly auditable source code.
+
+3. PRIVACY POLICY – RETENTION AND DELETION
+   The privacy policy now contains a "Data retention and deletion" section
+   with a per-data-type table (storage location, retention period, deletion
+   method): Drive folder names are cached in chrome.storage.session
+   (in-memory, 5 minutes, cleared when the browser closes); Docs structural
+   data is processed in memory and never stored; access tokens are managed
+   by Chrome and revocable at myaccount.google.com/permissions; user
+   settings live in chrome.storage.sync and are removed when the extension
+   is uninstalled. No Google user data is retained by the developer, as the
+   application has no server component.
+
+4. DEMONSTRATION VIDEO
+   A new video (unlisted): https://youtu.be/xxxx
+   It shows the Chrome Web Store listing and the installed extension ID,
+   the full OAuth consent screen with both requested scopes legible, and
+   then each scope's user-facing feature end to end.
+   - 00:xx  OAuth consent screen (both scopes visible)
+   - 00:xx  drive.metadata.readonly – folder path breadcrumb
+   - 00:xx  documents – one-click document defaults
+   - 00:xx  Revoking access at myaccount.google.com/permissions
+
+5. SCOPE JUSTIFICATION
+   Updated in Cloud Console for both scopes. In short:
+   - drive.metadata.readonly is used to read only the "name" and "parents"
+     fields of the file the user currently has open and of its ancestor
+     folders, in order to render a clickable folder breadcrumb inside the
+     Docs/Sheets/Slides editor. drive.file cannot be used because the
+     feature must work on whatever file the user already opened, and must
+     resolve ancestor folders the user never selects through the Picker.
+   - documents is used to read structural metadata (body end index, bullet
+     nesting levels, indent values) and to call batchUpdate to apply the
+     user's preferred font, size, line spacing, indent width and pageless
+     mode with one click. documents.readonly cannot call batchUpdate, and
+     the Docs API offers no formatting-only scope.
+   Neither feature reads document text, and no data is transmitted anywhere
+   other than Google's own APIs.
+
+6. SCOPE DISCREPANCY
+   The application requests exactly these two scopes and no others, as
+   declared in the extension manifest:
+     https://www.googleapis.com/auth/drive.metadata.readonly
+     https://www.googleapis.com/auth/documents
+   The Data Access configuration in Cloud Console now matches these strings
+   exactly, and both are shown on the consent screen in the video.
+
+7. TEST CREDENTIALS AND NAVIGATION INSTRUCTIONS
+   The application requires no account of its own and has no login, paywall
+   or pre-configured environment. It is published on the Chrome Web Store
+   and can be tested with any Google account:
+
+   1. Install "GWS Tweaks" from
+      https://chrome.google.com/webstore/detail/clfdceeaohplokfalnmcdjibngfnijok
+   2. Open any Google Doc at https://docs.google.com/document/
+   3. A folder-path bar appears under the menu bar. The first time, click
+      it to sign in; the OAuth consent screen appears. Click "Allow".
+      -> The breadcrumb now shows the file's Drive folder path. Clicking a
+         folder name opens that folder in Google Drive.
+         (demonstrates drive.metadata.readonly)
+   4. Click the magic-wand icon next to the document title.
+      -> The font, font size, line spacing, list indent width and pageless
+         mode configured in the extension options are applied to the
+         document, and the icon turns into a green check mark.
+         (demonstrates documents)
+   5. Optional: open the extension's options page from chrome://extensions
+      to change the defaults applied in step 4.
+
+   The source code is public at
+   https://github.com/TAKEDA-Takashi/gws-tweaks if you would like to
+   confirm the API calls made.
+
+Please let me know if anything further is needed.
+
+Best regards,
+xxxx
+```

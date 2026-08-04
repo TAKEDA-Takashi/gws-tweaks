@@ -35,12 +35,16 @@
 - 警告なしで広く公開するにはGoogleのOAuth検証が必要。制限付きスコープ（drive.metadata.readonly）は通常CASAセキュリティ評価も要るが、**取得データを端末外へ送信しない拡張機能は評価免除を申請できる**（本拡張はこの方針で実装している）
 - 個人利用＋知人程度なら「本番＋未検証（警告あり）」または「テストモード＋テストユーザー登録」で十分
 
+OAuth検証の審査結果への対応（指摘事項・スコープ正当化の英文・デモ動画の台本・返信ドラフト）は `docs/oauth-verification.md` を参照。
+
 ## プライバシーポリシーのURL
 
-GitHub Pages（mainブランチのルートから配信、`_config.yml` で必要なページ以外は除外）で公開済み:
+GitHub Pages（mainブランチのルートから配信、`_config.yml` で必要なページ以外は除外）＋カスタムドメイン（`CNAME` ファイル）で公開:
 
-- アプリのホームページ: https://takeda-takashi.github.io/gws-tweaks/ （`index.md`。OAuth検証の要件により、アプリ名と目的の説明を掲載している）
-- プライバシーポリシー: https://takeda-takashi.github.io/gws-tweaks/privacy/ （ダッシュボードの「プライバシー」タブとOAuth同意画面にはこのURLを指定する）
+- アプリのホームページ: https://gws-tweaks.matsutake.dev/ （`index.md`。OAuth検証の要件により、アプリ名と目的の説明を掲載している）
+- プライバシーポリシー: https://gws-tweaks.matsutake.dev/privacy/ （ダッシュボードの「プライバシー」タブとOAuth同意画面にはこのURLを指定する）
+
+旧URL（`https://takeda-takashi.github.io/gws-tweaks/`）はGitHub Pagesが新ドメインへ自動リダイレクトする。OAuth検証で「第三者ホスティングのドメイン不可」と指摘されたため独自ドメインへ移行した（経緯は `docs/oauth-verification.md`）。
 
 ## ストア掲載情報ドラフト
 
