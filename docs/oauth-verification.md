@@ -200,14 +200,22 @@ Thank you for the detailed review. I have addressed every item below.
    application has no server component.
 
 4. DEMONSTRATION VIDEO
-   A new video (unlisted): https://youtu.be/xxxx
+   A new video (unlisted, 3 min 22 s): https://youtu.be/xxxx
    It shows the Chrome Web Store listing and the installed extension ID,
    the full OAuth consent screen with both requested scopes legible, and
    then each scope's user-facing feature end to end.
-   - 00:xx  OAuth consent screen (both scopes visible)
-   - 00:xx  drive.metadata.readonly – folder path breadcrumb
-   - 00:xx  documents – one-click document defaults
-   - 00:xx  Revoking access at myaccount.google.com/permissions
+   - 0:00  Chrome Web Store listing (extension ID visible in the URL)
+   - 0:20  chrome://extensions – installed extension ID matches the listing
+   - 0:34  Options page (feature toggles and formatting defaults)
+   - 0:54  OAuth consent flow, shown unedited including the
+           unverified-app warning (verification is still in progress);
+           both scopes are legible and selected on the consent screen
+   - 1:46  drive.metadata.readonly – folder path breadcrumb, click opens
+           the folder in Google Drive
+   - 2:14  documents – one-click document defaults (font, size, line
+           spacing, indent width, pageless mode)
+   - 2:42  Bonus feature that uses no Google API scopes (Markdown paste)
+   - 3:07  Where users can revoke access (Google Account linked apps)
 
 5. SCOPE JUSTIFICATION
    Updated in Cloud Console for both scopes. In short:
