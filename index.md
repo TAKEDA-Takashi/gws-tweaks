@@ -25,5 +25,5 @@ Googleアカウントでの認証（Drive API・Docs API）を利用しますが
 
 ## リンク
 
-- [プライバシーポリシー](/gws-tweaks/privacy/)
+- [プライバシーポリシー](/privacy/)
 - [ソースコード（GitHub）](https://github.com/TAKEDA-Takashi/gws-tweaks)
