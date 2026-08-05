@@ -163,7 +163,7 @@ than Google's own APIs; the developer operates no server at all.
 
 ## 返信メールのドラフト（英文）
 
-**送信タイミング**: Cloud Consoleのブランドチェック（「OAuth同意画面のアプリ名とホームページのアプリ名が一致していません」）が解消されてから送る。原因だったページタイトルのタグライン混入は2026-08-04に修正済み（`_config.yml` の `description: ""`）で、Console側の再判定待ち。下記はそのまま送信できる完成版。
+**送信タイミング**: 待たずに送ってよい。Cloud Consoleのブランドチェック非準拠バッジ（「OAuth同意画面のアプリ名とホームページのアプリ名が一致していません」）は、[Googleのヘルプ](https://support.google.com/cloud/answer/13804963)によれば**修正後に検証リクエストを再提出（またはメール返信）したときに審査側で再評価される**ものであり、ページ修正を放置クロールで検知して自動的に消える仕組みではない（バッジ解消を待ってから返信すると、返信しないと再評価されないためデッドロックになる）。原因だったページタイトルのタグライン混入は2026-08-04に修正済み（`_config.yml` の `description: ""`）で、ホームページ側は `<title>`・`og:title`・`<h1>` すべて「GWS Tweaks」に一致済みを確認済み。下記の8項に再評価依頼を含めた完成版をそのまま送信する。
 
 ```
 Subject: Re: OAuth verification – GWS Tweaks (Project: chrome-extensions-502707)
@@ -265,6 +265,15 @@ Thank you for the detailed review. I have addressed every item below.
    The source code is public at
    https://github.com/TAKEDA-Takashi/gws-tweaks if you would like to
    confirm the API calls made.
+
+8. BRANDING CHECK SHOWN IN CLOUD CONSOLE
+   The Cloud Console currently flags "the app name on the homepage does
+   not match the OAuth consent screen". This referred to an auto-generated
+   tagline in the homepage's HTML title, which was removed on Aug 4. The
+   homepage now displays the exact app name "GWS Tweaks" in its title,
+   heading and metadata, matching the consent screen. Since this flag
+   appears to be re-evaluated as part of the review, I would appreciate it
+   if you could re-run the branding check against the current homepage.
 
 Please let me know if anything further is needed.
 
