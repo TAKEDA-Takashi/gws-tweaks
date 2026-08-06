@@ -291,3 +291,82 @@ Please let me know if anything further is needed.
 Best regards,
 Takashi Takeda
 ```
+
+## スコープ縮小の照会への返信（2026-08-06受領・Requesting Minimum Scopes）
+
+デモ動画の指摘とは**別トラック（別スレッド）**で、「drive.file スコープで代替できないか」の定型照会が届いた。メールは `documents` を「restricted Drive API scope」として挙げているが、実際に restricted なのは `drive.metadata.readonly` の方（`documents` は sensitive）。テンプレートの precision は低いので、**両スコープについて drive.file で代替できない理由を返す**のが安全。
+
+**判断: Option 2（Unable to use narrower scopes）で返信する。** 理由:
+
+- パンくずは drive.file では原理的に不可能（ユーザーが選択しない**祖先フォルダー**のメタデータが必要。開いているファイル自体を Picker で選択させても親フォルダーへのアクセスは付与されない）。よって `drive.metadata.readonly` は外せず、**CASA は documents を drive.file に替えても回避できない**
+- 杖を drive.file + Picker に移行するのは、Manifest V3 の remotely hosted code 禁止（Picker は gapi のリモートJS必須）と、サーバーを持たない設計（Picker を自前ホストするWebアプリという回避策が使えない）により技術的に成立しない。これは「UI preference / client library limitation」ではなく Chrome プラットフォームポリシーとの衝突なので、正当化として通る見込みがある
+- リスク: `documents` の正当化が却下された場合は、杖機能の作り直しか検証からの除外を迫られる。その場合でもパンくず（restricted 側）の正当化は鉄板なので、コア機能は守れる
+
+返信には Google 指定の定型句 **"Unable to use narrower scopes"** を含める必要がある。**この照会メールのスレッドに直接返信**する（デモ動画の返信とは別）。CASA の着手指示もこの返信で依頼する。
+
+```
+Hello,
+
+Unable to use narrower scopes. Please find the justification for each
+requested scope below.
+
+For clarity, the application requests exactly two scopes:
+  - https://www.googleapis.com/auth/drive.metadata.readonly (restricted)
+  - https://www.googleapis.com/auth/documents (sensitive)
+
+GWS Tweaks is a Manifest V3 Chrome extension that runs inside the Google
+Docs / Sheets / Slides editors. It has no server component: all API calls
+are made from the user's browser, and no Google user data ever leaves the
+user's device.
+
+1. WHY drive.file CANNOT REPLACE drive.metadata.readonly
+   (feature: folder-path breadcrumb, demo video at 2:12)
+   The extension displays the Drive folder path (e.g. "My Drive >
+   Projects > 2026") of the file the user currently has open. Resolving
+   that path requires reading the "name" and "parents" fields of the
+   file's ANCESTOR FOLDERS. drive.file grants access only to items the
+   user explicitly selects in the Google Picker (or that the app
+   creates). Even if the user selected the open document itself via the
+   Picker with setFileIds, drive.file would still not grant access to
+   the metadata of the document's parent folders, so the folder path
+   could never be resolved. Asking the user to select every ancestor
+   folder is not possible either: the user does not know the folder
+   chain in advance — discovering it is the purpose of the feature.
+   The scope is used strictly read-only, for two metadata fields (name,
+   parents) of the open file and its ancestors. No file content is ever
+   read, and the user's Drive is never listed or searched.
+
+2. WHY drive.file CANNOT REPLACE documents
+   (feature: one-click document defaults, demo video at 3:16)
+   A button in the Docs title bar applies the user's preferred
+   formatting to the currently open document via documents.get and
+   documents.batchUpdate. The exact-fit scope would be
+   documents.currentonly, but that scope is only available to Apps
+   Script / Workspace add-ons, not to a Chrome extension authenticating
+   with chrome.identity.
+   Using drive.file would require the Google Picker, which this
+   extension cannot run: the Picker requires loading Google's remotely
+   hosted JavaScript (gapi), which Chrome's Manifest V3 "remotely hosted
+   code" policy prohibits inside extension contexts, and the
+   docs.google.com page itself blocks injected script loading via its
+   CSP and Trusted Types enforcement. The usual workaround — hosting the
+   Picker on the developer's own web application — is not available
+   because this extension deliberately operates no server and sends no
+   user data off the user's device.
+   The scope is used only on the document the user is currently viewing,
+   and only in response to an explicit click. The extension reads
+   structural metadata (indices, bullet nesting levels, indent values),
+   writes only formatting properties, and never reads, stores or
+   transmits document text.
+
+3. CASA SECURITY ASSESSMENT
+   We understand the CASA security assessment applies because of
+   drive.metadata.readonly, and we are ready to proceed with it. Please
+   send the instructions for starting the assessment. For the
+   assessment's context: the application is a client-only Chrome
+   extension with no backend; no Google user data is transmitted to or
+   stored on any developer-operated system.
+
+Best regards,
+Takashi Takeda
+```
