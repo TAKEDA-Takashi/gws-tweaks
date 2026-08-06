@@ -302,7 +302,21 @@ Takashi Takeda
 - `documents`（杖）: **相対的に弱い**。documents.get / batchUpdate は公式に drive.file でも呼べるため、「APIが documents を要求する」とは主張できない。正当化の柱は (1) 適合スコープ `documents.currentonly` が Apps Script サービス専用で REST 呼び出しには使えない、(2) drive.file の per-file grant モデルでは**新規作成ドキュメントごとに Picker 承認が必要**になり、「新規ドキュメントごとの繰り返し設定を排除する」という機能目的と正面衝突する、の2点。却下される可能性は残る（Google は「UI preference / client library limitation は例外理由にならない」と予防線）
 - **使ってはいけない論拠**（初版ドラフトから撤回済み）: 「MV3 の remotely hosted code 禁止で Picker は実装不能」（sandboxed iframe ではリモートコード可、Picker は `PickerBuilder.toUri()` の iframe 埋め込みや、gapi 不要の新フロー `trigger_onepick=true&file_ids=` もある）／「サーバーレスだから Picker をホストできない」（Picker ページは静的HTMLで足り、`gws-tweaks.matsutake.dev` が既にある）。いずれも「不可能」ではなく実装方針の問題なので、書くと正当化全体の信頼を落とす
 - CASA: 「restricted が残る以上 CASA は不可避」という断定は撤回。公式定義は「**第三者サーバーから／経由で** restricted data にアクセスできるアプリ」が対象で、クライアントオンリー構成は対象外の可能性がある。返信では**要否の確認**として書く（最小スコープの正当化には使わない）
-- `documents` が却下された場合のフォールバック: 杖を drive.file（launchWebAuthFlow + `trigger_onepick` か Picker iframe）へ移行する。ただし移行するとスコープ構成が変わり**同意画面＝デモ動画の撮り直しが必要**になるため、まず正当化で押すのが総コスト最小
+- `documents` が却下された場合のフォールバック: 杖を drive.file（`trigger_onepick` フロー）へ移行する。ただし移行するとスコープ構成が変わり**同意画面＝デモ動画の撮り直しが必要**になるため、まず正当化で押すのが総コスト最小
+
+### 実地検証の結果（2026-08-06、テストプロジェクト gws-scope-test で実測）
+
+OAuth Playground（drive.file トークン）と、Desktop クライアント + `trigger_onepick=true&file_ids=<docId>` の新フローで検証した。
+
+| テスト | 結果 |
+|---|---|
+| drive.file トークンで app-created ドキュメントに `documents.batchUpdate` | **200**（Docs API は drive.file を受理） |
+| drive.file トークンで**未選択**の既存ドキュメントに `documents.get` | 404（per-file 分離） |
+| one-pick フロー: per-file 同意 → `file_ids` で事前フィルタされたピッカー（対象1件のみ表示）→ 選択 | **成立**。リダイレクトに `picked_file_ids` が付き、コード交換で drive.file トークン取得 |
+| one-pick で許可した**既存**ドキュメントに `documents.get` / `batchUpdate` | **どちらも200** — 杖は drive.file で技術的に実現可能 |
+| 同トークンで**その親フォルダー**に `files.get` | **404** — ファイル自体を許可してもパンくずは不可能（走査が最初の祖先で停止することを実証） |
+
+含意: パンくずの Unable 主張は**実験で裏付け済み**（英文にも実証の一文を追加済み）。杖は Google の推奨経路が実際に動くため、「Unable」の根拠は per-file grant モデルの機能不適合（新規ドキュメントごとに認可ラウンドトリップが再発する）のみに依存し、**却下リスクは相応にある**。却下されたら移行する二段構えとし、移行時の技術経路（one-pick）は検証済み。なお拡張への組み込み経路（Web クライアント + `chromiumapp.org` リダイレクトで trigger_onepick が使えるか）は未検証で、公式ドキュメントはこのフローを Desktop/Mobile アプリ向けとしている。検証用プロジェクト `gws-scope-test`（個人アカウント配下・組織なし）は残置、テスト時の OAuth grant は2件とも取り消し済み、テストドキュメントはゴミ箱へ移動済み。
 
 返信には Google 指定の定型句 **"Unable to use narrower scopes"** を含める必要がある。**この照会メールのスレッドに直接返信**する（デモ動画の返信とは別）。
 
@@ -339,6 +353,10 @@ third-party server.
    The folder chain cannot be pre-selected in a Picker either, because
    discovering that chain automatically is the purpose of the feature —
    it is not known in advance.
+   We verified this experimentally: after granting an app access to the
+   document itself through the picker-based authorization flow
+   (trigger_onepick), a files.get request for that document's parent
+   folder still returns 404 under drive.file.
    Access is strictly read-only and limited to the "name" and "parents"
    fields of the open file and its ancestors. No file content is ever
    read, and the user's Drive is never listed or searched.
