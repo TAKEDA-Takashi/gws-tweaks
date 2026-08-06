@@ -163,6 +163,8 @@ than Google's own APIs; the developer operates no server at all.
 
 ## 返信メールのドラフト（英文）
 
+**2026-08-06追記**: T&Sから2通目の指摘（デモ動画がスコープの必要性を十分に示していない）を受け、シーン4（同意フロー・両スコープの詳細展開）・5（パンくず網羅・約60秒）・6（杖のbefore/after・リロードで保存確認・約60秒）を撮り直した新動画（5:00）を作成済み。**YouTubeに限定公開で再アップロードし、下記4項のURLを差し替えてから、2通目のメールに返信する**。下記の文面は2通目への返信としてもそのまま使える（全項目の最新状態を報告する形）。
+
 **送信タイミング**: 待たずに送ってよい。Cloud Consoleのブランドチェック非準拠バッジ（「OAuth同意画面のアプリ名とホームページのアプリ名が一致していません」）は、[Googleのヘルプ](https://support.google.com/cloud/answer/13804963)によれば**修正後に検証リクエストを再提出（またはメール返信）したときに審査側で再評価される**ものであり、ページ修正を放置クロールで検知して自動的に消える仕組みではない（バッジ解消を待ってから返信すると、返信しないと再評価されないためデッドロックになる）。原因だったページタイトルのタグライン混入は2026-08-04に修正済み（`_config.yml` の `description: ""`）で、ホームページ側は `<title>`・`og:title`・`<h1>` すべて「GWS Tweaks」に一致済みを確認済み。下記の8項に再評価依頼を含めた完成版をそのまま送信する。
 
 ```
@@ -200,22 +202,31 @@ Thank you for the detailed review. I have addressed every item below.
    application has no server component.
 
 4. DEMONSTRATION VIDEO
-   A new video (unlisted, 3 min 22 s): https://youtu.be/xwUdd8D7m7E
-   It shows the Chrome Web Store listing and the installed extension ID,
-   the full OAuth consent screen with both requested scopes legible, and
-   then each scope's user-facing feature end to end.
+   A new, more comprehensive video (unlisted, 5 min 00 s): [新URLに差し替え]
+   It demonstrates the full operational functionality of both requested
+   scopes, shows the consent screen with each scope's access details
+   fully expanded and readable, and shows that the changes made by the
+   app are persisted to the document in the user's Google account.
    - 0:00  Chrome Web Store listing (extension ID visible in the URL)
    - 0:20  chrome://extensions – installed extension ID matches the listing
    - 0:34  Options page (feature toggles and formatting defaults)
    - 0:54  OAuth consent flow, shown unedited including the
-           unverified-app warning (verification is still in progress);
-           both scopes are legible and selected on the consent screen
-   - 1:46  drive.metadata.readonly – folder path breadcrumb, click opens
-           the folder in Google Drive
-   - 2:14  documents – one-click document defaults (font, size, line
-           spacing, indent width, pageless mode)
-   - 2:42  Bonus feature that uses no Google API scopes (Markdown paste)
-   - 3:07  Where users can revoke access (Google Account linked apps)
+           unverified-app warning. "See access details" is clicked for
+           both scopes so the full access details are displayed on
+           screen (drive.metadata.readonly at 1:21, documents at 1:31);
+           both scopes are then selected and granted, and the folder
+           breadcrumb renders immediately after consent
+   - 2:12  drive.metadata.readonly – full feature demo: the folder
+           breadcrumb on two documents in different folders (4-level and
+           3-level paths); clicking a crumb opens that folder in Google
+           Drive
+   - 3:16  documents – full feature demo: the document is shown before
+           (Google Docs default formatting), one click applies font,
+           size, line spacing, indent width and pageless mode, and the
+           document is then reloaded to show the changes were saved to
+           the user's account (Source Account Impact)
+   - 4:20  Bonus feature that uses no Google API scopes (Markdown paste)
+   - 4:45  Where users can revoke access (Google Account linked apps)
 
 5. SCOPE JUSTIFICATION
    Updated in Cloud Console for both scopes. In short:
